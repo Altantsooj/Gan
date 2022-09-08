@@ -1,7 +1,14 @@
-const { expect: untypedExpect } = await import('@esm-bundle' + '/chai');
-export const expect: typeof import('chai').expect = untypedExpect;
+import { expect } from 'chai';
 
-import { auth, error, signed_in, signed_out, unknown, waiting } from './auth';
+import {
+	auth,
+	error,
+	signed_in,
+	signed_out,
+	unknown,
+	waiting,
+	type AuthState
+} from '$lib/components/auth';
 import { describe, it } from 'vitest';
 
 describe('auth', () => {

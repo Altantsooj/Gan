@@ -19,14 +19,26 @@
 	import List, { Item, Text, Graphic, Separator, Subheader } from '@smui/list';
 	import { H6 } from '@smui/common/elements';
 	import { navigate_to } from '$lib/components/nav';
+	import {
+		collection,
+		collectionGroup,
+		onSnapshot,
+		orderBy,
+		query,
+		where,
+		type Unsubscribe
+	} from 'firebase/firestore';
+	import firebase from '$lib/firebase';
+	import { add_scramble, add_solve } from '$lib/components/solves';
+	import type { AnyAction } from '@reduxjs/toolkit';
 
 	$: open = width > 720;
-	$: active = $store.nav.active;
+	$: active = $store.nav.active.split('/')[0];
 
 	function setActive(value: string) {
 		store.dispatch(navigate_to(value));
 		open = false || width > 720;
-		goto(value);
+		goto('/' + value);
 	}
 
 	let width = 0;
@@ -35,6 +47,7 @@
 		unknown: 'Unknown',
 		timer: 'Speed Solving',
 		trending_down: 'Efficient Solving',
+		history_edu: 'Solve Analysis',
 		school: 'Roux Academy',
 		account_circle: 'Profile',
 		bluetooth: 'Cubes'
@@ -44,6 +57,80 @@
 	}
 
 	let loading = true;
+
+	let unsubSolves: Unsubscribe | undefined;
+	let unsubScrambles: Unsubscribe | undefined;
+	let unsubActions: Unsubscribe | undefined;
+	$: if ($store.auth.signedIn && !unsubSolves) {
+		if (!unsubScrambles) {
+			const scrambles = collection(firebase.firestore, 'scrambles');
+			unsubScrambles = onSnapshot(query(scrambles, orderBy('timestamp')), (querySnapshot) => {
+				querySnapshot.docChanges().forEach((change) => {
+					if (change.type === 'added') {
+						let doc = change.doc;
+						store.dispatch(add_scramble({ scramble: doc.data().setup, id: doc.id }));
+					}
+				});
+			});
+		}
+
+		if ($store.auth.uid && !unsubSolves) {
+			// always true
+			const solves = collectionGroup(firebase.firestore, 'solves');
+			unsubSolves = onSnapshot(
+				query(solves, where('creator', '==', $store.auth.uid), orderBy('timestamp')),
+				(querySnapshot) => {
+					querySnapshot.docChanges().forEach((change) => {
+						if (change.type === 'added') {
+							let doc = change.doc;
+							store.dispatch(
+								add_solve({
+									solveId: doc.id,
+									scramble: doc.data().scramble,
+									moves: doc.data().moves,
+									time: doc.data().time
+								})
+							);
+						}
+					});
+				},
+				(error) => {
+					console.log('solves query failing: ');
+					console.error(error);
+				}
+			);
+		}
+		if ($store.auth.uid && !unsubActions) {
+			const actions = collectionGroup(firebase.firestore, 'requests');
+			unsubSolves = onSnapshot(
+				query(actions, where('target', '==', $store.auth.uid), orderBy('timestamp')),
+				(querySnapshot) => {
+					querySnapshot.docChanges().forEach((change) => {
+						if (change.type === 'added') {
+							let doc = change.doc;
+							let action = doc.data() as AnyAction;
+							delete action.timestamp;
+							store.dispatch(action);
+						}
+					});
+				},
+				(error) => {
+					console.log('actions query failing: ');
+					console.error(error);
+				}
+			);
+		}
+	}
+
+	$: if (unsubSolves && !$store.auth.signedIn) {
+		unsubSolves();
+		unsubSolves = undefined;
+	}
+
+	$: if (unsubScrambles && !$store.auth.signedIn) {
+		unsubScrambles();
+		unsubScrambles = undefined;
+	}
 </script>
 
 <svelte:window bind:innerWidth={width} />
@@ -138,6 +225,14 @@
 					>
 						<Graphic class="material-icons" aria-hidden="true">trending_down</Graphic>
 						<Text>{textLookup('trending_down')}</Text>
+					</Item>
+					<Item
+						href="javascript:void(0)"
+						on:click={() => setActive('history_edu')}
+						activated={active === 'history_edu'}
+					>
+						<Graphic class="material-icons" aria-hidden="true">history_edu</Graphic>
+						<Text>{textLookup('history_edu')}</Text>
 					</Item>
 					<Item
 						href="javascript:void(0)"

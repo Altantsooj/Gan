@@ -7,8 +7,8 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"dev": "vite dev",
-		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint .",
+		"format": "prettier --no-color --write .",
+		"lint": "prettier --no-color --check . && eslint .",
 		"package": "svelte-kit package",
 		"prepare": "npm run smui-theme-light && npm run smui-theme-dark",
 		"preview": "vite preview",
@@ -28,6 +28,7 @@
 		"@sveltejs/adapter-static": "^1.0.0-next.39",
 		"@sveltejs/kit": "next",
 		"@types/chai": "^4.3.3",
+		"@types/d3-scale": "^4.0.2",
 		"@types/mocha": "^9.1.1",
 		"@typescript-eslint/eslint-plugin": "^5.27.0",
 		"@typescript-eslint/parser": "^5.27.0",
@@ -60,7 +61,9 @@
 		"@smui/list": "^6.1.0",
 		"@smui/top-app-bar": "^6.1.0",
 		"@web/test-runner-playwright": "^0.8.10",
-		"cubing": "^0.29.0",
-		"firebase": "^9.9.3"
+		"cubing": "^0.29.1",
+		"d3-scale": "^4.0.2",
+		"firebase": "^9.9.3",
+		"three": "^0.144.0"
 	}
 }
