@@ -15,7 +15,6 @@ import type {
 	RawCallback
 } from './gan356i_v1';
 
-const kpuzzle = await cube3x3x3.kpuzzle();
 const UUIDs = {
 	ganCubeService: '6e400001-b5a3-f393-e0a9-e50e24dc4179',
 	ganV2NotificationsCharacteristic: '28be4cb6-cd67-11e9-a32f-2a2ae2dbcce4',
@@ -547,7 +546,7 @@ export class GANCubeV2 {
 		return topFace + frontFace;
 	};
 
-	private initQuaternionToOrientationMap() {
+	private async initQuaternionToOrientationMap() {
 		const WGOrientation = new Quaternion(0, 0, 0, 1);
 		const zMove = new Quaternion();
 		const yMove = new Quaternion();
@@ -557,6 +556,7 @@ export class GANCubeV2 {
 		xMove.setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI / 2);
 		const facingStates: { [key: string]: KState } = {};
 		let currentOrientation = WGOrientation;
+		const kpuzzle = await cube3x3x3.kpuzzle();
 		let state: KState = kpuzzle.startState();
 		// centers is in "ULFRBD" order
 		let centers = state.stateData['CENTERS'].pieces;
