@@ -5,7 +5,10 @@ import {
 	play,
 	initialWordsState,
 	type WordsState,
-	type WordsMove
+	type WordsMove,
+	initial_tiles,
+	draw_tiles,
+	join_game
 } from '$lib/components/words';
 import { describe, it } from 'vitest';
 
@@ -15,19 +18,28 @@ describe('words', () => {
 		expect(initialWordsState.board[0].length).to.equals(15);
 	});
 
+	function makeGameStartState() {
+		let nextState = words({...initialWordsState}, initial_tiles('hellowogodbyesrldherearesomeletters'));
+		nextState = words(nextState, join_game("Alex@gmail.com"));
+		expect(nextState.players.length).to.equal(1);
+		nextState = words(nextState, join_game("Bob@gmail.com"));
+		expect(nextState.players[0]).to.equal("Alex@gmail.com");
+		nextState = words(nextState, draw_tiles("Alex@gmail.com"));
+		nextState = words(nextState, draw_tiles("Bob@gmail.com"));
+		expect(nextState.emailToRack["Alex@gmail.com"]).to.equal('hellowo');
+		expect(nextState.drawPile).to.equal('rldherearesomeletters');
+		return nextState;
+	}
+
 	it('play horizontal move', () => {
 		const move: WordsMove = {
 			x: 7,
 			y: 7,
 			isVertical: false,
-			letters: 'hello'
+			letters: 'hello',
+			player: 'Alex@gmail.com',
 		};
-		const nextState = words(
-			{
-				...initialWordsState
-			},
-			play(move)
-		);
+		const nextState = words(makeGameStartState(), play(move));
 		expect(nextState.board[7].join('')).to.be.equal('hello');
 	});
 
@@ -40,12 +52,11 @@ describe('words', () => {
 			x: 7,
 			y: 7,
 			isVertical: true,
-			letters: 'hello'
+			letters: 'hello',
+			player: "Alex@gmail.com"
 		};
 		const nextState = words(
-			{
-				...initialWordsState
-			},
+			makeGameStartState(),
 			play(move)
 		);
 		const transposedBoard = transpose(nextState.board);
@@ -57,19 +68,19 @@ describe('words', () => {
 			x: 7,
 			y: 7,
 			isVertical: false,
-			letters: 'hello'
+			letters: 'hello',
+			player: 'Alex@gmail.com',
 		};
 		const firstState = words(
-			{
-				...initialWordsState
-			},
+			makeGameStartState(),
 			play(horizontal)
 		);
 		const vertical: WordsMove = {
 			x: 11,
 			y: 6,
 			isVertical: true,
-			letters: 'godbye'
+			letters: 'godbye',
+			player: 'Bob@gmail.com',
 		};
 		const nextState = words(firstState, play(vertical));
 
@@ -83,12 +94,11 @@ describe('words', () => {
 			x: 14,
 			y: 7,
 			isVertical: false,
-			letters: 'hello'
+			letters: 'hello',
+			player: 'Alex@gmail.com',
 		};
 		const nextState = words(
-			{
-				...initialWordsState
-			},
+			makeGameStartState(),
 			play(move)
 		);
 		expect(nextState.board[7].join('')).to.be.equal('');
@@ -99,12 +109,26 @@ describe('words', () => {
 			x: 0,
 			y: 7,
 			isVertical: false,
-			letters: 'hello'
+			letters: 'hello',
+			player: 'Alex@gmail.com',
 		};
 		const nextState = words(
-			{
-				...initialWordsState
-			},
+			makeGameStartState(),
+			play(move)
+		);
+		expect(nextState.board[7].join('')).to.be.equal('');
+	});
+
+	it('play wrong initial move where we are lacking letters', () => {
+		const move: WordsMove = {
+			x: 7,
+			y: 7,
+			isVertical: false,
+			letters: 'lovely',
+			player: 'Alex@gmail.com',
+		};
+		const nextState = words(
+			makeGameStartState(),
 			play(move)
 		);
 		expect(nextState.board[7].join('')).to.be.equal('');
@@ -115,19 +139,19 @@ describe('words', () => {
 			x: 7,
 			y: 7,
 			isVertical: false,
-			letters: 'hello'
+			letters: 'hello',
+			player: 'Alex@gmail.com',
 		};
 		const firstState = words(
-			{
-				...initialWordsState
-			},
+			makeGameStartState(),
 			play(horizontal)
 		);
 		const vertical: WordsMove = {
 			x: 0,
 			y: 6,
 			isVertical: true,
-			letters: 'godbye'
+			letters: 'godbye',
+			player: 'Alex@gmail.com',
 		};
 		const nextState = words(firstState, play(vertical));
 
@@ -141,23 +165,53 @@ describe('words', () => {
 			x: 7,
 			y: 7,
 			isVertical: false,
-			letters: 'him'
+			letters: 'he',
+			player: 'Alex@gmail.com',
 		};
 		const firstState = words(
-			{
-				...initialWordsState
-			},
+			makeGameStartState(),
 			play(horizontal)
 		);
 		const vertical: WordsMove = {
 			x: 6,
 			y: 6,
 			isVertical: false,
-			letters: 'foo'
+			letters: 'lol',
+			player: 'Alex@gmail.com',
 		};
 		const nextState = words(firstState, play(vertical));
 
-		expect(nextState.board[7].join('')).to.be.equal('him');
-		expect(nextState.board[6].join('')).to.be.equal('foo');
+		expect(nextState.board[7].join('')).to.be.equal('he');
+		expect(nextState.board[6].join('')).to.be.equal('lol');
+	});
+
+	it('initialize draw pile', () => {
+		const nextState = words(
+			{
+				...initialWordsState
+			},
+			initial_tiles('foo')
+		);
+		expect(nextState.drawPile).to.be.equal('foo');
+	});
+
+	it('allows the player to draw tiles from the draw pile', () => {
+		let nextState = words({...initialWordsState}, initial_tiles('helloworldherearesomeletters'));
+		nextState = words(nextState, join_game("Alex@gmail.com"));
+		expect(nextState.players.length).to.equal(1);
+		expect(nextState.players[0]).to.equal("Alex@gmail.com");
+		nextState = words(nextState, draw_tiles("Alex@gmail.com"));
+		expect(nextState.emailToRack["Alex@gmail.com"]).to.equal('hellowo');
+		expect(nextState.drawPile).to.equal('rldherearesomeletters');
+	});
+
+	it('handles end of bag correctly', () => {
+		let nextState = words({...initialWordsState}, initial_tiles('hel'));
+		nextState = words(nextState, join_game("Alex@gmail.com"));
+		expect(nextState.players.length).to.equal(1);
+		expect(nextState.players[0]).to.equal("Alex@gmail.com");
+		nextState = words(nextState, draw_tiles("Alex@gmail.com"));
+		expect(nextState.emailToRack["Alex@gmail.com"]).to.equal('hel');
+		expect(nextState.drawPile).to.equal('');
 	});
 });
