@@ -48,10 +48,18 @@
 		timer: 'Speed Solving',
 		trending_down: 'Efficient Solving',
 		history_edu: 'Solve Analysis',
+		analysis: 'Solve Analysis',
 		school: 'Roux Academy',
 		account_circle: 'Profile',
 		bluetooth: 'Cubes'
 	};
+	const icons: { [key: string]: string } = {
+		analysis: 'history_edu'
+	};
+	function getIconName(s: string) {
+		if (icons[s]) return icons[s];
+		return s;
+	}
 	function textLookup(key: string) {
 		return i18n[key];
 	}
@@ -180,7 +188,7 @@
 							>
 						{:else}
 							<IconButton class="material-icons" on:click={() => (open = !open || width > 720)}
-								>{active}</IconButton
+								>{getIconName(active)}</IconButton
 							>
 						{/if}
 						<Title>{textLookup(active)}</Title>

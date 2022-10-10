@@ -39,10 +39,10 @@
 		{#each allSolves as solve, i}
 			<tr
 				class={i % 2 ? 'odd' : 'even'}
-				on:click={() => goto('history_edu/' + solve.solveId + '?from=history_edu')}
+				on:click={() => goto('analysis/?solve=' + solve.solveId + '&from=history_edu')}
 				><td>{allSolves.length - i}</td><td>{solve.time / 10}</td><td>{solve.moves.length}</td>
 				<td>
-					<Button on:click={() => goto('history_edu/' + solve.solveId)}>
+					<Button on:click={() => goto('analysis?solve=' + solve.solveId + '&from=history_edu')}>
 						<Label>Analysis</Label>
 						<i class="material-icons" aria-hidden="true">arrow_forward</i>
 					</Button></td

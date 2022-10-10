@@ -254,7 +254,7 @@
 			...storedSolve,
 			timestamp: serverTimestamp()
 		});
-		goto('history_edu/' + doc.id + `?from=${origin}`);
+		goto(`analysis/?solve=${doc.id}&from=${origin}`);
 	}
 	$: if (isSolved) {
 		if (!isStored) {

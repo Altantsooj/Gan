@@ -8,14 +8,14 @@
 	import IconButton from '@smui/icon-button';
 	import { Item, Text } from '@smui/list';
 	import { get_roux_stages, type SolutionDesc } from '$lib/third_party/onionhoney/Analyzer';
-	import { Move, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
+	import { MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 	import { makeOptimizedData } from '$lib/optimizer/optimizer';
 
 	function toArray(any: ArrayLike<unknown> | Iterable<unknown>) {
 		if (any) return Array.from(any);
 		return [];
 	}
-	const solveId = $page.params.slug;
+	const solveId = $page.url.searchParams.get('solve') || 'error';
 	const sourcePage = $page.url.searchParams.get('from') || 'timer';
 	$: solve = $store.solves.solveIdToSolve[solveId];
 	$: time = solve && solve.time / 10;
@@ -92,7 +92,9 @@
 		console.log({ stages, solveData });
 		//console.log(JSON.stringify(stages));
 	}
-	$: makeDataTable(displayMode);
+	$: if (solve) {
+		makeDataTable(displayMode);
+	}
 	$: maxY = solveData
 		.map((e) => e.yValue)
 		.sort((a, b) => Number(a) - Number(b))
