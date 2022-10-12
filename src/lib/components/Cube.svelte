@@ -18,50 +18,49 @@
 		const dim = 'D';
 		const muted = 'I';
 
-		let edges = 'EDGES:';
+		function stringify(
+			perm: number[],
+			cubies: number[],
+			mask: number[],
+			prior: number[] | undefined
+		) {
+			const ret: string[] = [];
+			for (let j = 0; j < perm.length; ++j) {
+				const i = cubies[perm[j]];
+				if (mask[i] === 1) {
+					if (prior && prior[i] === 1) ret.push(dim);
+					else ret.push(regular);
+				} else {
+					ret.push(muted);
+				}
+			}
+			return ret.join('');
+		}
 		//[UF, UL, UB, UR, DF, DL, DB, DR, FL, BL, BR, FR];
 		//[UF, UR, UB, UL, DF, DR, DB, DL, FR, FL, BR, BL];
 		const edgePerm = [0, 3, 2, 1, 4, 7, 6, 5, 11, 8, 10, 9];
+		const edges =
+			'EDGES:' + stringify(edgePerm, cubies.ep, mask.ep, priorMask ? priorMask.ep : undefined);
 
-		for (let j = 0; j < edgePerm.length; ++j) {
-			const i = cubies.ep[edgePerm[j]];
-			if (mask.ep[i] === 1) {
-				if (priorMask && priorMask.ep[i] === 1) edges += dim;
-				else edges += regular;
-			} else {
-				edges += muted;
-			}
-		}
-
-		let corners = 'CORNERS:';
 		//  0 .  1 .  2 .  3 .  4 .  5 .  6 .  7
 		//[ULF, UBL, URB, UFR, DFL, DLB, DBR, DRF];
 		//[UFR, URB, UBL, ULF, DRF, DFL, DLB, DBR
-		const cornerPerm = [3, 2, 1, 0, 7, 4, 5, 6];
-		for (let j = 0; j < cornerPerm.length; ++j) {
-			const i = cubies.cp[cornerPerm[j]];
-			if (mask.cp[i] === 1) {
-				if (priorMask && priorMask.cp[i] === 1) corners += dim;
-				else corners += regular;
-			} else {
-				corners += muted;
-			}
-		}
+		const cornerPerm: number[] = [3, 2, 1, 0, 7, 4, 5, 6];
+		const corners =
+			'CORNERS:' + stringify(cornerPerm, cubies.cp, mask.cp, priorMask ? priorMask.cp : undefined);
 
-		let centers = 'CENTERS:';
 		//[0, 1, 2, 3, 4, 5];
 		//[U, D, F, B, L, R];
 		//[U, L, F, R, B, D
 		const centerPerm = [0, 4, 2, 5, 3, 1];
-		for (let j = 0; j < centerPerm.length; ++j) {
-			const i = cubies.tp[centerPerm[j]];
-			if (!mask.tp || mask.tp[i] === 1) {
-				if (priorMask && priorMask.tp && priorMask.tp[i] === 1) centers += dim;
-				else centers += regular;
-			} else {
-				centers += muted;
-			}
-		}
+		const centers =
+			'CENTERS:' +
+			stringify(
+				centerPerm,
+				cubies.tp,
+				mask.tp || [1, 1, 1, 1, 1, 1],
+				priorMask && priorMask.tp ? priorMask.tp : undefined
+			);
 
 		twistyPlayer.experimentalStickeringMaskOrbits = `${edges},${corners},${centers}`;
 	}
