@@ -73,6 +73,7 @@
 	let solution: { move: string; timestamp: number }[] = [];
 
 	async function addMove(model: any, move: string) {
+		console.log({ move });
 		alg = experimentalAppendMove(alg, new Move(move), {
 			sameDirection: true,
 			wideMoves333: true,
@@ -90,7 +91,12 @@
 
 		let inverted = Array.from(alg.invert().childAlgNodes());
 		inverted = inverted.concat(Array.from(new Alg(scramble).childAlgNodes()));
-		remaining = new Alg(inverted).simplify({ collapseMoves: true, quantumMoveOrder: () => 4 });
+		remaining = new Alg(inverted).simplify({
+			cancel: {
+				directional: 'any-direction',
+				puzzleSpecificModWrap: 'canonical-centered'
+			}
+		});
 		if (remaining.isIdentical(new Alg()) && !solving) {
 			startWhenReady = true;
 		} else if (solving) {

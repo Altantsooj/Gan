@@ -61,7 +61,7 @@
 		"@smui/list": "^6.1.0",
 		"@smui/top-app-bar": "^6.1.0",
 		"@web/test-runner-playwright": "^0.8.10",
-		"cubing": "^0.29.1",
+		"cubing": "file:../cubing.js",
 		"d3-scale": "^4.0.2",
 		"firebase": "^9.9.3",
 		"three": "^0.144.0"

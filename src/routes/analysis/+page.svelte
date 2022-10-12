@@ -183,6 +183,9 @@ validateUserSolution({
 				console.log('SHOW POSITION: ', startOffset, ' for ', stageSelected);
 				playHead = startOffset;
 				stickering = s.stage;
+				if (stages[0].orientation) {
+					stickeringOrientation = new MoveSeq(stages[0].orientation).toString();
+				}
 				if (optimized[i] && optimized[i].length) {
 					alternateSolution = { ...optimized[i][0], rotatedSolution: new MoveSeq([]) };
 					alternateSolution.stage = s.stage;
@@ -212,6 +215,7 @@ validateUserSolution({
 	}
 	let playHead = 0;
 	let stickering = '';
+	let stickeringOrientation = '';
 </script>
 
 <div class="container">
@@ -258,7 +262,14 @@ validateUserSolution({
 				{/if}
 			{/each}
 		</table>
-		<Cube {playHead} {stickering} scramble={cubeSS} solve={cubeAlg} controlPanel={'yes'} />
+		<Cube
+			{playHead}
+			{stickering}
+			{stickeringOrientation}
+			scramble={cubeSS}
+			solve={cubeAlg}
+			controlPanel={'yes'}
+		/>
 		<Button on:click={next}>
 			<Label>Next Scramble</Label>
 			<i class="material-icons" aria-hidden="true">arrow_forward</i>
