@@ -8,11 +8,10 @@ let queue: Promise<any> = Promise.resolve();
 //const pendingOperations: GATTOperation<T>[] = [];
 //const completedOperations: GATTOperation<T>[] = [];
 
+const idToDeviceMap: { [k: string]: BluetoothDevice } = {};
+
 export function getDevice(f: GATTDeviceDescriptor): Promise<BluetoothDevice> {
-	return navigator.bluetooth.getDevices().then((devices) => {
-		const device = devices.filter((d) => d.id === f.id);
-		return device[0];
-	});
+	return Promise.resolve(idToDeviceMap[f.id]);
 }
 
 export function getServer(f: GATTDeviceDescriptor): Promise<BluetoothRemoteGATTServer> {
@@ -45,4 +44,11 @@ export function write(f: GATTCharacteristicDescriptor, data: Uint8Array) {
 	return queue.then(() =>
 		getCharacteristic(f).then((characteristic) => characteristic.writeValue(data))
 	);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function requestDevice(options: any) {
+	return navigator.bluetooth
+		.requestDevice(options)
+		.then((device) => (idToDeviceMap[device.id] = device));
 }
