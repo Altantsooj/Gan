@@ -12,9 +12,10 @@
 	export let stickering = '';
 	export let stickeringOrientation = '';
 
-	async function setStickersString(mask: MaskT) {
+	async function setStickersString(mask: MaskT, priorMask?: MaskT) {
 		const cubies = new CubieCube().apply(stickeringOrientation);
 		const regular = '-';
+		const dim = 'D';
 		const muted = 'I';
 
 		let edges = 'EDGES:';
@@ -25,7 +26,8 @@
 		for (let j = 0; j < edgePerm.length; ++j) {
 			const i = cubies.ep[edgePerm[j]];
 			if (mask.ep[i] === 1) {
-				edges += regular;
+				if (priorMask && priorMask.ep[i] === 1) edges += dim;
+				else edges += regular;
 			} else {
 				edges += muted;
 			}
@@ -39,7 +41,8 @@
 		for (let j = 0; j < cornerPerm.length; ++j) {
 			const i = cubies.cp[cornerPerm[j]];
 			if (mask.cp[i] === 1) {
-				corners += regular;
+				if (priorMask && priorMask.cp[i] === 1) corners += dim;
+				else corners += regular;
 			} else {
 				corners += muted;
 			}
@@ -53,7 +56,8 @@
 		for (let j = 0; j < centerPerm.length; ++j) {
 			const i = cubies.tp[centerPerm[j]];
 			if (!mask.tp || mask.tp[i] === 1) {
-				centers += regular;
+				if (priorMask && priorMask.tp && priorMask.tp[i] === 1) centers += dim;
+				else centers += regular;
 			} else {
 				centers += muted;
 			}
@@ -62,8 +66,8 @@
 		twistyPlayer.experimentalStickeringMaskOrbits = `${edges},${corners},${centers}`;
 	}
 
-	async function setStickers(mask: MaskT) {
-		setStickersString(mask);
+	async function setStickers(mask: MaskT, priorMask?: MaskT) {
+		setStickersString(mask, priorMask);
 	}
 
 	$: if (stickering) {
@@ -74,8 +78,12 @@
 		stageToMask['sp'] = Mask.sb_mask;
 		stageToMask['cmll'] = Mask.lse_mask;
 		stageToMask['lse'] = Mask.solved_mask;
+		stageToMask['pre_ss'] = stageToMask['fb'];
+		stageToMask['pre_sp'] = stageToMask['fb'];
+		stageToMask['pre_cmll'] = stageToMask['sp'];
+		stageToMask['pre_lse'] = stageToMask['cmll'];
 		if (stageToMask[stickering]) {
-			setStickers(stageToMask[stickering]);
+			setStickers(stageToMask[stickering], stageToMask['pre_' + stickering]);
 		} else {
 			setStickers(Mask.solved_mask);
 		}
