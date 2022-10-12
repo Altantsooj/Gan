@@ -105,7 +105,8 @@
 		} else if (startWhenReady) {
 			solveOffset = solutionMoves.length;
 			solving = true;
-			cube?.setTrackingRotations(true);
+			// Disable gyro for now as this isn't working well.
+			//cube?.setTrackingRotations(true);
 			startWhenReady = false;
 		}
 

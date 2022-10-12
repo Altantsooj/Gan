@@ -140,6 +140,8 @@ export class GANCube {
 		window.setTimeout(pollMoveState, 10);
 	}
 
+	lastClockTime = 0;
+	lastInterval = 100;
 	public handleMoves(decryptedMoves: Uint8Array, callback: MoveCallback, ori: OrientationCallback) {
 		const arr = new Uint8Array(decryptedMoves.buffer);
 		const facingQuat = this.updateOrientation(decryptedMoves);
@@ -156,7 +158,15 @@ export class GANCube {
 				);
 			}
 			for (let i = arr.length - numMoves; i < arr.length; ++i) {
+				const clockTime = new Date().getTime();
+				this.lastInterval = clockTime - this.lastClockTime;
+				this.lastClockTime = clockTime;
 				callback(arr[i]);
+				if (!this.trackingRotation && this.lastInterval < 40) {
+					// hack in rotation moves based on timestamps
+					console.log({ last: this.lastInterval });
+					callback(arr[i] + 0x80);
+				}
 			}
 		}
 
@@ -197,7 +207,19 @@ export class GANCube {
 			0x0c: 'O',
 			0x0e: "O'",
 			0x0f: 'B',
-			0x11: "B'"
+			0x11: "B'",
+			0x80: "w'",
+			0x82: 'w',
+			0x83: "r'",
+			0x85: 'r',
+			0x86: "g'",
+			0x88: 'g',
+			0x89: "y'",
+			0x8b: 'y',
+			0x8c: "o'",
+			0x8e: 'o',
+			0x8f: "b'",
+			0x91: 'b'
 		};
 		const moveToRotation: { [k: number]: string } = {
 			0x20: 'x',
@@ -214,11 +236,24 @@ export class GANCube {
 		if (!move && moveToRotation[originalMove]) {
 			return moveToRotation[originalMove];
 		}
-		const faceIndex = colors.indexOf(move[0]);
+		const faceIndex = colors.indexOf(move[0].toUpperCase());
 		const faces = 'ULFRBD';
-		const family = faces[stateData['CENTERS'].pieces.indexOf(faceIndex)];
-		if (move.length === 1) {
+		const rotations = 'yxzxzy';
+		const inversion = '010011';
+		const index = stateData['CENTERS'].pieces.indexOf(faceIndex);
+		let family = faces[index];
+		let inverted = false;
+		if (move[0].toUpperCase() !== move[0]) {
+			family = rotations[index];
+			inverted = inversion[index] === '1';
+		}
+		let forward = move.length === 1;
+		if (inverted) forward = !forward;
+		if (forward) {
 			return family;
+		}
+		if (family.slice(-1) === "'") {
+			return family.slice(0, -1);
 		}
 		return family + "'";
 	}
