@@ -18,6 +18,7 @@
 	import { Spherical, Vector3, type Quaternion } from 'three';
 	import { getServer } from '$lib/bluetooth/bluetooth';
 	import { GANCubeV2, getDeviceKeyInfo } from '$lib/bluetooth/gan/gan356i_v2';
+	import { cube3x3x3 } from 'cubing/puzzles';
 
 	export let origin = 'timer';
 	let scramble = new Alg();
@@ -91,11 +92,12 @@
 
 		let inverted = Array.from(alg.invert().childAlgNodes());
 		inverted = inverted.concat(Array.from(new Alg(scramble).childAlgNodes()));
-		remaining = new Alg(inverted).simplify({
+		remaining = new Alg(inverted).experimentalSimplify({
 			cancel: {
 				directional: 'any-direction',
 				puzzleSpecificModWrap: 'canonical-centered'
-			}
+			},
+			puzzleLoader: cube3x3x3
 		});
 		if (remaining.isIdentical(new Alg()) && !solving) {
 			startWhenReady = true;
