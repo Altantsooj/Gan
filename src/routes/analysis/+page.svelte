@@ -164,8 +164,13 @@ validateUserSolution({
 	function handleStage(stageSelected: any) {
 		selectStage(stageSelected.detail);
 	}
+	let startOffset = 0;
+	let endOffset = -1;
+	let nextStage: string | undefined = undefined;
 	function selectStage(stageSelected: string) {
-		let startOffset = 0;
+		startOffset = 0;
+		endOffset = -1;
+		nextStage = undefined;
 		if (stages[0].view) {
 			startOffset += stages[0].view.length();
 		}
@@ -199,7 +204,14 @@ validateUserSolution({
 				}
 				alternateScramble += ' ' + s.rotatedSolution + ' ';
 			}
-			startOffset += s.rotatedSolution.length();
+			if (endOffset === -1) {
+				startOffset += s.rotatedSolution.length();
+			} else if (nextStage === undefined) {
+				nextStage = s.stage;
+			}
+			if (translation[s.stage] === stageSelected || s.stage === stageSelected) {
+				endOffset = startOffset;
+			}
 		});
 		if (playHead === -1) {
 			playHead = startOffset;
@@ -216,6 +228,11 @@ validateUserSolution({
 	let playHead = 0;
 	let stickering = '';
 	let stickeringOrientation = '';
+	$: if (playHead === endOffset) {
+		if (nextStage) {
+			selectStage(nextStage);
+		}
+	}
 </script>
 
 <div class="container">
@@ -263,7 +280,7 @@ validateUserSolution({
 			{/each}
 		</table>
 		<Cube
-			{playHead}
+			bind:playHead
 			{stickering}
 			{stickeringOrientation}
 			scramble={cubeSS}

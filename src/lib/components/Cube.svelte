@@ -98,7 +98,8 @@
 		twistyPlayer.alg = solve;
 	}
 
-	$: if (playHead >= 0) {
+	let playerPosition = -1;
+	$: if (playHead !== playerPosition) {
 		const p = async () => {
 			console.log({ playHead });
 			twistyPlayer.pause();
@@ -122,6 +123,10 @@
 				twistyPlayer.controlPanel = 'none';
 			}
 			const model = twistyPlayer.experimentalModel;
+			model.currentMoveInfo.addFreshListener((currentMoveInfo: any) => {
+				playHead = currentMoveInfo.stateIndex;
+				playerPosition = playHead;
+			});
 			twistyPlayer.experimentalSetupAlg = scramble;
 			twistyPlayer.alg = solve;
 			twistyPlayer.tempoScale = 4;
