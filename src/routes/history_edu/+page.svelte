@@ -6,7 +6,7 @@
 
 	let averages: { [key: number]: number } = {};
 	function computeAoN(n: number) {
-		const nSolves = allSolves.slice(0, n).sort();
+		const nSolves = allSolves.slice(0, n).sort((a, b) => a.time - b.time);
 		const discard = Math.ceil(0.1 * n);
 		const aSolves = nSolves.slice(discard, -discard);
 		let totalTime = 0;
