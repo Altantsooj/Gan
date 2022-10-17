@@ -6,6 +6,8 @@ import { cubes } from '$lib/components/cubes';
 import { solves } from '$lib/components/solves';
 import { nav } from '$lib/components/nav';
 import type { Writable } from 'svelte/store';
+import { methods } from './components/methods';
+import { stages } from './components/stages';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function svelteStoreEnhancer(createStoreApi: (arg0: any, arg1: any) => any) {
@@ -30,6 +32,8 @@ const reducer = {
 	auth,
 	cubes,
 	nav,
+	methods,
+	stages,
 	solves
 };
 const rawStore = configureStore({ reducer, enhancers: [svelteStoreEnhancer] });

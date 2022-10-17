@@ -17,7 +17,6 @@
 	/* drawer */
 	import Drawer, { AppContent, Content, Header, Subtitle, Scrim } from '@smui/drawer';
 	import List, { Item, Text, Graphic, Separator, Subheader } from '@smui/list';
-	import { H6 } from '@smui/common/elements';
 	import { navigate_to } from '$lib/components/nav';
 	import {
 		collection,
@@ -51,10 +50,12 @@
 		analysis: 'Solve Analysis',
 		school: 'Roux Academy',
 		account_circle: 'Profile',
+		mask_editor: 'Method Editor',
 		bluetooth: 'Cubes'
 	};
 	const icons: { [key: string]: string } = {
-		analysis: 'history_edu'
+		analysis: 'history_edu',
+		mask_editor: 'edit'
 	};
 	function getIconName(s: string) {
 		if (icons[s]) return icons[s];
@@ -223,7 +224,7 @@
 						on:click={() => setActive('timer')}
 						activated={active === 'timer'}
 					>
-						<Graphic class="material-icons" aria-hidden="true">timer</Graphic>
+						<Graphic class="material-icons" aria-hidden="true">{getIconName('timer')}</Graphic>
 						<Text>{textLookup('timer')}</Text>
 					</Item>
 					<Item
@@ -231,7 +232,9 @@
 						on:click={() => setActive('trending_down')}
 						activated={active === 'trending_down'}
 					>
-						<Graphic class="material-icons" aria-hidden="true">trending_down</Graphic>
+						<Graphic class="material-icons" aria-hidden="true"
+							>{getIconName('trending_down')}</Graphic
+						>
 						<Text>{textLookup('trending_down')}</Text>
 					</Item>
 					<Item
@@ -239,7 +242,8 @@
 						on:click={() => setActive('history_edu')}
 						activated={active === 'history_edu'}
 					>
-						<Graphic class="material-icons" aria-hidden="true">history_edu</Graphic>
+						<Graphic class="material-icons" aria-hidden="true">{getIconName('history_edu')}</Graphic
+						>
 						<Text>{textLookup('history_edu')}</Text>
 					</Item>
 					<Item
@@ -247,18 +251,29 @@
 						on:click={() => setActive('school')}
 						activated={active === 'school'}
 					>
-						<Graphic class="material-icons" aria-hidden="true">school</Graphic>
+						<Graphic class="material-icons" aria-hidden="true">{getIconName('school')}</Graphic>
 						<Text>{textLookup('school')}</Text>
+					</Item>
+					<Item
+						href="javascript:void(0)"
+						on:click={() => setActive('mask_editor')}
+						activated={active === 'mask_editor'}
+					>
+						<Graphic class="material-icons" aria-hidden="true">{getIconName('mask_editor')}</Graphic
+						>
+						<Text>{textLookup('mask_editor')}</Text>
 					</Item>
 
 					<Separator />
-					<Subheader component={H6}>Settings</Subheader>
+					<Subheader>Settings</Subheader>
 					<Item
 						href="javascript:void(0)"
 						on:click={() => setActive('account_circle')}
 						activated={active === 'account_circle'}
 					>
-						<Graphic class="material-icons" aria-hidden="true">account_circle</Graphic>
+						<Graphic class="material-icons" aria-hidden="true"
+							>{getIconName('account_circle')}</Graphic
+						>
 						<Text>{textLookup('account_circle')}</Text>
 					</Item>
 					<Item
@@ -266,7 +281,7 @@
 						on:click={() => setActive('bluetooth')}
 						activated={active === 'bluetooth'}
 					>
-						<Graphic class="material-icons" aria-hidden="true">bluetooth</Graphic>
+						<Graphic class="material-icons" aria-hidden="true">{getIconName('bluetooth')}</Graphic>
 						<Text>{textLookup('bluetooth')}</Text>
 					</Item>
 				</List>

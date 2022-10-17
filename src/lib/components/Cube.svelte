@@ -11,6 +11,7 @@
 	export let playHead = 0;
 	export let stickering = '';
 	export let stickeringOrientation = '';
+	export let visualization = 'PG3D';
 
 	async function setStickersString(mask: MaskT, priorMask?: MaskT) {
 		const cubies = new CubieCube().apply(stickeringOrientation);
@@ -118,7 +119,7 @@
 		let contentElem = document.querySelector('#twisty-content');
 		if (contentElem) {
 			twistyPlayer.background = 'none';
-			twistyPlayer.visualization = 'PG3D';
+			twistyPlayer.visualization = visualization;
 			if (controlPanel === 'none') {
 				twistyPlayer.controlPanel = 'none';
 			}
