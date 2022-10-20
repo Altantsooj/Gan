@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { puzzles, type PuzzleLoader } from 'cubing/puzzles';
 
 interface Piece {

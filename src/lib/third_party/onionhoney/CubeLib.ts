@@ -928,13 +928,17 @@ type Mask = {
 };
 export type MaskT = Mask;
 function mask_copy(m: Mask) {
-	return {
+	const ret = {
 		co: m.co && [...m.co],
 		eo: m.eo && [...m.eo],
 		tp: m.tp && [...m.tp],
 		cp: [...m.cp],
 		ep: [...m.ep]
 	};
+	if (!ret.co) delete ret.co;
+	if (!ret.eo) delete ret.eo;
+	if (!ret.tp) delete ret.tp;
+	return ret;
 }
 
 const lse_mask: Mask = {

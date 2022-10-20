@@ -5,17 +5,17 @@ const { createAction, createReducer } = ((toolkitRaw as any).default ??
 	toolkitRaw) as typeof toolkitRaw;
 
 export interface Stage {
+	name: string;
 	mask: MaskT;
 }
 export interface StagesState {
 	stageIdToStageMap: { [k: string]: Stage };
 }
 
-export const new_stage = createAction<{ stage: string; mask: MaskT }>('new_stage');
-export const duplicate_stage = createAction<{ stage: string; copy_to: string }>('duplicate_stage');
+export const new_stage = createAction<{ id: string; name: string; mask: MaskT }>('new_stage');
 export const delete_stage = createAction<string>('delete_stage');
 export const set_state = createAction<{
-	stage: string;
+	id: string;
 	orbit: string;
 	index: number;
 	oriented?: boolean;
@@ -28,17 +28,13 @@ export const initialState: StagesState = {
 
 export const stages = createReducer(initialState, (r) => {
 	r.addCase(new_stage, (state, { payload }) => {
-		state.stageIdToStageMap[payload.stage] = { mask: Mask.copy(payload.mask) };
-	});
-	r.addCase(duplicate_stage, (state, { payload }) => {
-		const copyMe = state.stageIdToStageMap[payload.stage];
-		state.stageIdToStageMap[payload.copy_to] = { mask: Mask.copy(copyMe.mask) };
+		state.stageIdToStageMap[payload.id] = { mask: Mask.copy(payload.mask), name: payload.name };
 	});
 	r.addCase(delete_stage, (state, { payload }) => {
 		delete state.stageIdToStageMap[payload];
 	});
 	r.addCase(set_state, (state, { payload }) => {
-		const mask = Mask.copy(state.stageIdToStageMap[payload.stage].mask);
+		const mask = Mask.copy(state.stageIdToStageMap[payload.id].mask);
 		let pa: number[] = mask.cp;
 		let po: number[] | undefined = mask.co ? mask.co : undefined;
 		if (payload.orbit === 'CENTERS') {
@@ -62,6 +58,6 @@ export const stages = createReducer(initialState, (r) => {
 		if (payload.positioned !== undefined) {
 			pa[payload.index] = payload.positioned ? 1 : 0;
 		}
-		state.stageIdToStageMap[payload.stage] = { mask };
+		state.stageIdToStageMap[payload.id] = { ...state.stageIdToStageMap[payload.id], mask };
 	});
 });

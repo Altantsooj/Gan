@@ -6,9 +6,10 @@ const { createAction, createReducer } = ((toolkitRaw as any).default ??
 export type StageMap = { [k: string]: string[] };
 export interface MethodsState {
 	methodToStageMap: { [k: string]: StageMap };
+	methodToNameMap: { [k: string]: string };
 }
 
-export const new_method = createAction<string>('new_method');
+export const new_method = createAction<{ name: string; id: string }>('new_method');
 export const delete_method = createAction<string>('delete_method');
 export const add_stage = createAction<{ method: string; parent?: string; stage: string }>(
 	'add_stage'
@@ -19,12 +20,14 @@ export const rename_stage = createAction<{ method: string; stage: string; name: 
 export const remove_stage = createAction<{ method: string; stage: string }>('remove_stage');
 
 export const initialState: MethodsState = {
-	methodToStageMap: {}
+	methodToStageMap: {},
+	methodToNameMap: {}
 };
 
 export const methods = createReducer(initialState, (r) => {
 	r.addCase(new_method, (state, { payload }) => {
-		state.methodToStageMap[payload] = {};
+		state.methodToStageMap[payload.id] = {};
+		state.methodToNameMap[payload.id] = payload.name;
 	});
 
 	r.addCase(add_stage, (state, { payload }) => {
@@ -65,5 +68,6 @@ export const methods = createReducer(initialState, (r) => {
 	});
 	r.addCase(delete_method, (state, { payload }) => {
 		delete state.methodToStageMap[payload];
+		delete state.methodToNameMap[payload];
 	});
 });

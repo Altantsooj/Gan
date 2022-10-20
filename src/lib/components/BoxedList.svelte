@@ -1,63 +1,100 @@
 <script lang="ts">
 	import { Icon } from '@smui/icon-button';
 	import IconButton from '@smui/icon-button/src/IconButton.svelte';
-	import List, { Item } from '@smui/list';
+	import List, { Item, Meta } from '@smui/list';
 	import Textfield from '@smui/textfield';
-	import Select, { Option } from '@smui/select';
 	import { createEventDispatcher } from 'svelte';
 	import Autocomplete from '@smui-extra/autocomplete';
 
 	export let items: string[] = [];
-	export let options: string[] = [];
+	export let options: string[] | undefined = undefined;
 
 	const dispatch = createEventDispatcher();
 
-	function destroy(item: string) {
+	function destroy(item: string, index: number) {
 		return () => {
-			dispatch('destroy', { item });
+			dispatch('destroy', { item, index });
 		};
 	}
 	let selected: number = -1;
 	let newItem = '';
+	let newItemText = '';
+	function selectedEvent(e: CustomEvent) {
+		newItemText = '';
+		blur();
+	}
 	function blur() {
 		dispatch('new', { item: newItem });
-		newItem = '';
 	}
-	function select(i: index) {
+	function select(i: number) {
 		dispatch('select', { item: items[i], index: i });
 	}
 	function handleEnterKey(e: CustomEvent<any> | KeyboardEvent) {
 		e = e as KeyboardEvent;
 		if (e.key == 'Enter') {
+			newItem = newItemText;
+			newItemText = '';
 			blur();
 		}
+	}
+	function dontLoseSelection(e: CustomEvent) {
+		e.preventDefault();
 	}
 </script>
 
 <div class="list-border">
-	<List>
-		{#each items as method, i}
-			<Item on:focus={() => select((selected = i))} on:blur={(e) => e.preventDefault()}
-				>{method}<span class="trash {i === selected ? 'selected' : ''}"
-					><IconButton
-						style="margin-right: -0.5em"
-						class="material-icons"
-						on:click={destroy(method)}>delete</IconButton
-					></span
-				></Item
+	<div class="list">
+		<List>
+			{#each items as method, i}
+				<Item on:focus={() => select((selected = i))} on:blur={dontLoseSelection}
+					><span class={i === selected ? 'selected' : ''}>{method}</span><Meta
+						><span class="trash {i === selected ? 'selected' : ''}"
+							><IconButton
+								style="margin-right: -0.5em"
+								class="material-icons"
+								on:click={destroy(method, i)}>delete</IconButton
+							></span
+						></Meta
+					></Item
+				>
+			{/each}
+		</List>
+	</div>
+	<div class="spacer" />
+	<div class="controls">
+		{#if options}
+			<Autocomplete
+				{options}
+				bind:value={newItem}
+				bind:text={newItemText}
+				on:SMUIAutocomplete:selected={selectedEvent}
+				label="Add"
 			>
-		{/each}
-		<Item>
-			<Textfield bind:value={newItem} label="New" on:keydown={handleEnterKey} on:blur={blur}>
+				<Textfield bind:value={newItemText} label="Add">
+					<Icon class="material-icons" slot="leadingIcon">add</Icon>
+				</Textfield>
+			</Autocomplete>
+		{:else}
+			<Textfield bind:value={newItemText} label="New" on:keydown={handleEnterKey}>
 				<Icon class="material-icons" slot="leadingIcon">add</Icon>
 			</Textfield>
-		</Item>
-	</List>
+		{/if}
+	</div>
 </div>
 
 <style>
+	.list-border:first-of-type {
+		border-left: 1px solid #bbb;
+	}
 	.list-border {
 		border: 1px solid #bbb;
+		border-left: none;
+		border-bottom: none;
+		display: flex;
+		flex-direction: column;
+	}
+	.spacer {
+		flex-grow: 1;
 	}
 	.trash {
 		opacity: 0.0001;
@@ -67,5 +104,6 @@
 	}
 	.selected {
 		opacity: 1;
+		font-weight: bold;
 	}
 </style>

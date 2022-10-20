@@ -4,51 +4,118 @@
 	import SVGCube from '$lib/components/SVGCube.svelte';
 	import { delete_method, new_method, remove_stage, rename_stage } from '$lib/components/methods';
 	import { store } from '$lib/store';
+	import { onMount, onDestroy } from 'svelte';
+	import { dispatch, watchAll } from '$lib/actionlog';
+	import { create as createMethod } from '$lib/actionlog';
+	import { new_stage, type Stage } from '$lib/components/stages';
+	import { Mask, type MaskT } from '$lib/third_party/onionhoney/CubeLib';
 
-	$: items = Object.keys($store.methods.methodToStageMap).sort();
-	let method: string | undefined = undefined;
+	$: entries = Object.entries($store.methods.methodToNameMap);
+	$: items = entries.map((x) => x[1]);
+	let methodIndex: number | undefined = undefined;
 
 	function destroy(event: CustomEvent) {
-		store.dispatch(delete_method(event.detail.item));
+		if (event.detail.index !== undefined && $store.auth.uid) {
+			const docId = entries[event.detail.index][0];
+			dispatch('methods', docId, $store.auth.uid, delete_method(docId));
+		}
 	}
-	function create(event: CustomEvent) {
-		if (event.detail.item) {
-			store.dispatch(new_method(event.detail.item));
+	async function create(event: CustomEvent) {
+		if (event.detail.item && $store.auth.uid) {
+			const doc = await createMethod('methods', $store.auth.uid);
+			dispatch(
+				'methods',
+				doc.id,
+				$store.auth.uid,
+				new_method({ name: event.detail.item, id: doc.id })
+			);
 		}
 	}
 	function selectMethod(event: CustomEvent) {
-		method = event.detail.item;
+		methodIndex = event.detail.index;
 	}
 
-	let stage: string | undefined = undefined;
-	function stageCallback(event: CustomEvent) {
-		stage = event.detail.stage;
-		console.log('STAGE: ', stage);
+	$: allStages = Object.entries($store.stages.stageIdToStageMap) || [];
+	let nameToOptionIndex: { [k: string]: number } = {};
+	$: if (allStages.length) {
+		allStages.forEach((x, i) => {
+			const stageName = x[1].name;
+			nameToOptionIndex[stageName] = i;
+		});
 	}
+	function getStageByName(name: string) {
+		return allStages[nameToOptionIndex[name]];
+	}
+	let stage: [string, Stage] | undefined = undefined;
+	function stageCallback(event: CustomEvent) {
+		stage = getStageByName(event.detail.stage);
+	}
+	let pendingStage = '';
 	function renameStage(event: CustomEvent) {
-		if (method && stage) {
-			store.dispatch(rename_stage({ method, stage, name: event.detail.stage }));
-			stage = event.detail.stage;
+		if (methodIndex !== undefined && stage && $store.auth.uid) {
+			const method = entries[methodIndex][0];
+			const name = event.detail.stage[1].name;
+			if (name !== stage[1].name) {
+				dispatch(
+					'methods',
+					method,
+					$store.auth.uid,
+					rename_stage({ method, stage: stage[1].name, name })
+				);
+				pendingStage = name;
+			}
+		}
+	}
+	let lastAllStages = allStages;
+	$: if (allStages && allStages !== lastAllStages) {
+		lastAllStages = allStages;
+		if (pendingStage && pendingStage === allStages.slice(-1)[0][1].name) {
+			stage = getStageByName(pendingStage);
+			pendingStage = '';
 		}
 	}
 	function destroyStage(event: CustomEvent) {
-		if (method && stage) {
-			store.dispatch(remove_stage({ method, stage }));
-			stage = '';
+		if (methodIndex !== undefined && stage && $store.auth.uid) {
+			const method = entries[methodIndex][0];
+			dispatch('methods', method, $store.auth.uid, remove_stage({ method, stage: stage[1].name }));
+			stage = undefined;
 		}
 	}
+
+	onMount(() => {
+		watchAll('methods');
+		watchAll('stages');
+	});
+
+	onDestroy(() => {
+		type MaskMap = { [k: string]: { mask: MaskT } };
+		let allMasks: MaskMap = $store.stages.stageIdToStageMap;
+		if (Object.keys(allMasks).length === 0) {
+			let predefined: { [k: string]: MaskT } = Mask as any;
+			let initWith: string[] = Object.keys(Mask).filter((x) => predefined[x].cp !== undefined);
+			initWith.forEach(async (maskId) => {
+				if ($store.auth.uid) {
+					const mask = predefined[maskId];
+					const doc = await createMethod('stages', $store.auth.uid);
+					const id = doc.id;
+					const newStage = new_stage({ id, name: maskId.replace('_mask', ''), mask });
+					dispatch('stages', id, $store.auth.uid, newStage);
+				}
+			});
+		}
+	});
 </script>
 
 <div class="column">
 	<div class="row">
 		<BoxedList {items} on:destroy={destroy} on:new={create} on:select={selectMethod} />
-		{#if method}
-			<BoxedStage {method} {stageCallback} on:stage={stageCallback} />
+		{#if methodIndex !== undefined}
+			<BoxedStage method={entries[methodIndex][0]} {stageCallback} on:stage={stageCallback} />
 		{/if}
 	</div>
 	<div class="row">
 		{#if stage}
-			<SVGCube {stage} on:destroy={destroyStage} on:stage={renameStage} />
+			<SVGCube {stage} {allStages} on:destroy={destroyStage} on:stage={renameStage} />
 		{/if}
 	</div>
 </div>
@@ -57,6 +124,8 @@
 	.column {
 		display: flex;
 		flex-direction: column;
+		width: 100%;
+		align-items: flex-start;
 	}
 	.row {
 		display: flex;

@@ -1,12 +1,15 @@
 <script lang="ts">
-	import { Mask, type MaskT } from '$lib/third_party/onionhoney/CubeLib';
-	import { onMount } from 'svelte';
-	import { Cube, Facelet } from './SVGCube';
-	import Autocomplete from '@smui-extra/autocomplete';
-	import { createEventDispatcher } from 'svelte';
+	import { create, dispatch as dispatchToFirebase } from '$lib/actionlog';
 	import { store } from '$lib/store';
-	import { delete_stage, new_stage, set_state } from './stages';
-	import Button from '@smui/button';
+	import { Mask, type MaskT } from '$lib/third_party/onionhoney/CubeLib';
+	import Autocomplete from '@smui-extra/autocomplete';
+	import Button, { Label } from '@smui/button';
+	import Dialog, { Actions, Content, Title } from '@smui/dialog';
+	import { Text } from '@smui/list';
+	import Textfield from '@smui/textfield';
+	import { createEventDispatcher, onMount } from 'svelte';
+	import { delete_stage, new_stage, set_state, type Stage } from './stages';
+	import { Cube, Facelet } from './SVGCube';
 
 	const dispatch = createEventDispatcher();
 
@@ -47,25 +50,18 @@
 		}
 		oriented = state & 0x01 ? true : false;
 		positioned = (state & 0x02) >> 1 ? true : false;
-		if (stage) {
-			const setState = set_state({ stage, orbit, index, oriented, positioned });
-			store.dispatch(setState);
+		if (stage && $store.auth.uid) {
+			const id = stage[0];
+			dispatchToFirebase(
+				'stages',
+				id,
+				$store.auth.uid,
+				set_state({ id, orbit, index, oriented, positioned })
+			);
 		}
 	}
 	let svgCube = new Cube(clickCallback);
 
-	type MaskMap = { [k: string]: { mask: MaskT } };
-	let allMasks: MaskMap = $store.stages.stageIdToStageMap;
-	if (Object.keys(allMasks).length === 0) {
-		let predefined: { [k: string]: MaskT } = Mask as any;
-		let initWith: string[] = Object.keys(Mask).filter((x) => predefined[x].cp !== undefined);
-		initWith.forEach((maskId) => {
-			const mask = predefined[maskId];
-			const newStage = new_stage({ stage: maskId.replace('_mask', ''), mask });
-			store.dispatch(newStage);
-		});
-	}
-	let hardcodedMasks: string[] = Object.keys($store.stages.stageIdToStageMap);
 	async function displayMask(mask: MaskT) {
 		await svgCube.loadPuzzle();
 		for (let i = 0; i < mask.cp.length; ++i) {
@@ -91,79 +87,143 @@
 	onMount(async () => {
 		displayMask(mask);
 	});
-	export let stage: string | undefined = undefined;
-	let copied: string | undefined;
+	export let allStages: [string, Stage][] = [];
+	export let stage: [string, Stage] | undefined = undefined;
+	$: text = '';
 	let index = -1;
-	$: if (stage && $store.stages.stageIdToStageMap[stage]) {
-		mask = Mask.copy($store.stages.stageIdToStageMap[stage].mask);
+	$: if (stage && $store.stages.stageIdToStageMap[stage[0]]) {
+		stage[1] = $store.stages.stageIdToStageMap[stage[0]];
+		mask = Mask.copy(stage[1].mask);
 		displayMask(mask);
-		if (copied !== stage) {
-			copied = stage;
-		}
 	}
 
-	$: if (stage && hardcodedMasks.indexOf(stage) === -1) {
-		if (index === -1) {
-			index = hardcodedMasks.length;
-			hardcodedMasks.push(stage);
-		} else {
-			hardcodedMasks[index] = stage;
-		}
-		dispatch('stage', { stage });
-	}
-	$: if (stage && hardcodedMasks.indexOf(stage) !== index) {
-		index = -1;
-	}
-	let oldStage = '';
+	let oldStage: [string, Stage] | undefined = undefined;
 	$: if (stage && stage !== oldStage) {
 		oldStage = stage;
 		dispatch('stage', { stage });
 	}
 
-	function newStage() {
-		let name = 'untitled';
-		let count = 0;
-		while ($store.stages.stageIdToStageMap[name]) {
-			count++;
-			name = `untitled_${count}`;
+	async function newStage() {
+		if ($store.auth.uid) {
+			let name = newStageName || 'untitled';
+			let count = 0;
+			const usedNames: { [k: string]: boolean } = {};
+			Object.keys($store.stages.stageIdToStageMap).forEach((id) => {
+				const name = $store.stages.stageIdToStageMap[id].name;
+				usedNames[name] = true;
+			});
+			while (usedNames[name]) {
+				count++;
+				name = `untitled_${count}`;
+			}
+			const doc = await create('stages', $store.auth.uid);
+			const id = doc.id;
+			dispatchToFirebase(
+				'stages',
+				id,
+				$store.auth.uid,
+				new_stage({ id, name, mask: Mask.solved_mask })
+			);
+			const nextOne: [string, Stage] = [id, { name, mask: Mask.copy(mask) }];
+			dispatch('stage', { stage: nextOne });
 		}
-		store.dispatch(new_stage({ stage: name, mask: Mask.solved_mask }));
-		stage = name;
 	}
-	function duplicateStage() {
-		const root = stage?.replaceAll('copy_of_', '') || '';
-		let name = 'copy_of_' + root;
-		let count = 0;
-		while ($store.stages.stageIdToStageMap[name]) {
-			count++;
-			const regex = /_[0-9]*$/;
-			name = `copy_of_${root.replace(regex, '')}_${count}`;
+	async function duplicateStage() {
+		if ($store.auth.uid && mask) {
+			let name = newStageName || 'copy_';
+			const usedNames: { [k: string]: boolean } = {};
+			Object.keys($store.stages.stageIdToStageMap).forEach((id) => {
+				const name = $store.stages.stageIdToStageMap[id].name;
+				usedNames[name] = true;
+			});
+			let count = 0;
+			while (usedNames[name]) {
+				count++;
+				const regex = /_[0-9]*$/;
+				name = `${name.replace(regex, '')}_${count}`;
+			}
+			const doc = await create('stages', $store.auth.uid);
+			const id = doc.id;
+			dispatchToFirebase(
+				'stages',
+				id,
+				$store.auth.uid,
+				new_stage({ id, name, mask: Mask.copy(mask) })
+			);
+			const nextOne: [string, Stage] = [id, { name, mask: Mask.copy(mask) }];
+			dispatch('stage', { stage: nextOne });
 		}
-		store.dispatch(new_stage({ stage: name, mask }));
-		stage = name;
 	}
 	function destroyStage() {
-		if (stage) {
-			store.dispatch(delete_stage(stage));
+		if (stage && $store.auth.uid) {
+			const id = stage[0];
+			dispatchToFirebase('stages', id, $store.auth.uid, delete_stage(id));
 			dispatch('destroy', { stage });
 		}
+	}
+
+	let newStageName: string = '';
+	let dialogOpen = false;
+	let unusedText = '';
+	/*
+	$: if (stage && (stage !== oldStage || !unusedText)) {
+		unusedText = stage[1].name;
+	}
+	*/
+	let lastInput: HTMLInputElement | undefined = undefined;
+	function handleInput(e: CustomEvent) {
+		lastInput = e.target as HTMLInputElement;
+		unusedText = lastInput.value;
 	}
 </script>
 
 <div class="container">
 	<div id="puzzle" />
 	<div class="column">
-		<Autocomplete
-			combobox
-			options={hardcodedMasks}
-			bind:value={stage}
-			bind:text={stage}
-			label="Stage"
-		/>
-		<Button on:click={newStage}>New Stage</Button>
-		<Button on:click={duplicateStage}>Duplicate</Button>
+		{#if allStages.length > 0}
+			<Autocomplete
+				options={allStages}
+				getOptionLabel={(option) => option && option.length === 2 && option[1].name}
+				bind:value={stage}
+				on:input={handleInput}
+				label="Stage"
+				noMatchesActionDisabled={false}
+				on:SMUIAutocomplete:noMatchesAction={(e) => {
+					newStageName = unusedText;
+					if (lastInput) lastInput.blur();
+					dialogOpen = true;
+				}}
+			>
+				<div slot="no-matches">
+					<Text>Add stage</Text>
+				</div>
+			</Autocomplete>
+		{/if}
+		<Button on:click={() => (dialogOpen = true)}>New Stage</Button>
 		<Button on:click={destroyStage}>Delete</Button>
 	</div>
+	<Dialog
+		bind:open={dialogOpen}
+		aria-labelledby="autocomplete-dialog-title"
+		aria-describedby="autocomplete-dialog-content"
+	>
+		<!-- Title cannot contain leading whitespace due to mdc-typography-baseline-top() -->
+		<Title id="autocomplete-dialog-title">New Stage</Title>
+		<Content id="autocomplete-dialog-content">
+			<Textfield bind:value={newStageName} label="Name" />
+		</Content>
+		<Actions>
+			<Button>
+				<Label>Cancel</Label>
+			</Button>
+			<Button on:click={duplicateStage}>
+				<Label>Duplicate</Label>
+			</Button>
+			<Button on:click={newStage}>
+				<Label>New</Label>
+			</Button>
+		</Actions>
+	</Dialog>
 </div>
 
 <style>
@@ -174,28 +234,14 @@
 	}
 	.container {
 		display: flex;
-		width: 100%;
+		width: 600px;
+		flex-grow: 1;
+		justify-content: center;
+		flex-direction: row;
 	}
 
 	#puzzle {
 		width: 50%;
 		margin-top: 20px;
-	}
-
-	#puzzles {
-		margin-top: 56px;
-	}
-
-	#mode {
-		margin-top: 15px;
-	}
-
-	.panel {
-		width: 50%;
-		padding: 20px;
-	}
-
-	h1 {
-		margin: 0;
 	}
 </style>
