@@ -12,7 +12,7 @@ describe('stages', () => {
 		};
 		let nextState = stages(initialState, new_stage({ id: 'abcd', name: 'cross', mask }));
 		expect(JSON.stringify(nextState.stageIdToStageMap['abcd'])).to.equal(
-			JSON.stringify({ mask, name: 'cross' })
+			JSON.stringify({ mask, name: 'cross', orientations: [''] })
 		);
 	});
 	it('can create and delete new stage', () => {
@@ -22,7 +22,7 @@ describe('stages', () => {
 		};
 		let nextState = stages(initialState, new_stage({ id: 'cross', name: 'cross', mask }));
 		expect(JSON.stringify(nextState.stageIdToStageMap['cross'])).to.equal(
-			JSON.stringify({ mask, name: 'cross' })
+			JSON.stringify({ mask, name: 'cross', orientations: [''] })
 		);
 		nextState = stages(nextState, delete_stage('cross'));
 		expect(Object.keys(nextState.stageIdToStageMap).length).to.equal(0);
@@ -38,7 +38,7 @@ describe('stages', () => {
 		};
 		let nextState = stages(initialState, new_stage({ id: 'cross', name: 'cross', mask }));
 		expect(JSON.stringify(nextState.stageIdToStageMap['cross'])).to.equal(
-			JSON.stringify({ mask, name: 'cross' })
+			JSON.stringify({ mask, name: 'cross', orientations: [''] })
 		);
 		nextState = stages(
 			nextState,
@@ -49,7 +49,7 @@ describe('stages', () => {
 			set_state({ id: 'cross', orbit: 'EDGES', index: 2, positioned: true })
 		);
 		expect(JSON.stringify(nextState.stageIdToStageMap['cross'])).to.equal(
-			JSON.stringify({ mask: expected, name: 'cross' })
+			JSON.stringify({ mask: expected, name: 'cross', orientations: [''] })
 		);
 	});
 
@@ -66,7 +66,7 @@ describe('stages', () => {
 		};
 		let nextState = stages(initialState, new_stage({ id: 'abcd', name: 'cross', mask }));
 		expect(JSON.stringify(nextState.stageIdToStageMap['abcd'])).to.equal(
-			JSON.stringify({ mask, name: 'cross' })
+			JSON.stringify({ mask, name: 'cross', orientations: [''] })
 		);
 		nextState = stages(
 			nextState,

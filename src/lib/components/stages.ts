@@ -7,12 +7,13 @@ const { createAction, createReducer } = ((toolkitRaw as any).default ??
 export interface Stage {
 	name: string;
 	mask: MaskT;
+	orientations: string[];
 }
 export interface StagesState {
 	stageIdToStageMap: { [k: string]: Stage };
 }
 
-export const new_stage = createAction<{ id: string; name: string; mask: MaskT }>('new_stage');
+export const new_stage = createAction<{ id: string; name: string; mask: MaskT, orientations?: string[] }>('new_stage');
 export const delete_stage = createAction<string>('delete_stage');
 export const set_state = createAction<{
 	id: string;
@@ -28,7 +29,11 @@ export const initialState: StagesState = {
 
 export const stages = createReducer(initialState, (r) => {
 	r.addCase(new_stage, (state, { payload }) => {
-		state.stageIdToStageMap[payload.id] = { mask: Mask.copy(payload.mask), name: payload.name };
+		let orientations = [''];
+		if (payload.orientations) {
+			orientations = payload.orientations;
+		}
+		state.stageIdToStageMap[payload.id] = { mask: Mask.copy(payload.mask), name: payload.name, orientations };
 	});
 	r.addCase(delete_stage, (state, { payload }) => {
 		delete state.stageIdToStageMap[payload];
