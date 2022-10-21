@@ -16,13 +16,15 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 	const solvedCubes = allOris.map((o) => scrambledCube.apply(solution).apply(o));
 	const solved = solvedCubes.filter((x) => CubeUtil.is_cube_solved(x));
 	if (solved.length !== 1) {
-		throw `Cube\n${visualize(solvedCubes[0])}\ndoes not look solved`;
+		const e = `Cube\n${visualize(solvedCubes[0])}\ndoes not look solved`;
+		throw e;
 	}
 	let ret = [];
 	const state = store.getState();
 
 	if (!state.methods.methodToStageMap[method]) {
-		throw `method ${method} not found in custom methods`;
+		const e = `method ${method} not found in custom methods`;
+		throw e;
 	}
 	const moves = [Move.all['id'], ...solution.moves];
 	let currentStage = 'scrambled';
@@ -32,6 +34,8 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 	let chosenStage = '';
 	let ori: MoveSeq = new MoveSeq('');
 	let prerotate: MoveSeq | undefined = undefined;
+	const accumulated_rots: MoveSeq[] = [];
+	let frozenFace: string | undefined = undefined;
 	for (const move of moves) {
 		const stageSuccessors = state.methods.methodToStageMap[method][currentStage];
 		cube = cube.apply(move);
@@ -43,7 +47,8 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 			const oris = possibleOris.map((m) => new MoveSeq(m));
 			for (const o of oris) {
 				const checkOrientation = cube.changeBasis(o);
-				prerotate = prerotate_solves(checkOrientation, firstMask, allOris);
+				const freeFace = state.stages.stageIdToStageMap[stageOption].free_face;
+				prerotate = prerotate_solves(checkOrientation, firstMask, allOris, freeFace);
 				if (prerotate !== undefined) {
 					found = true;
 					ori = o;
@@ -61,20 +66,29 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 					rot = new MoveSeq(priorStage.orientation);
 				}
 				if (priorStage.view) {
-					rot = new MoveSeq([rot.moves, priorStage.view.moves].flat());
+					rot = new MoveSeq([rot.moves, priorStage.view.inv().moves].flat());
 				}
 			});
 			rotatedSolution = rotatedSolution.pushBackAll(rot).tail(rot.length());
 			rotatedSolution = rotatedSolution.pushBackAll(ori).tail(ori.length());
 			cube = cube.changeBasis(ori).apply(ori.inv());
 			if (prerotate && ori.length() > 0) {
-				rotatedSolution = rotatedSolution.pushBackAll(prerotate);
+				rotatedSolution = rotatedSolution.pushBackAll(prerotate).tail(prerotate.length());
+			}
+			if (frozenFace !== undefined) {
+				rotatedSolution = preferRwide(rotateMoves(rotatedSolution.moves));
+			}
+			if (state.stages.stageIdToStageMap[chosenStage].frozen_face) {
+				frozenFace = state.stages.stageIdToStageMap[chosenStage].frozen_face;
+				if (frozenFace !== 'L') {
+					throw 'Freezing non-L faces not yet supported';
+				}
 			}
 			const solutionFound: SolutionDesc = {
 				solution: new MoveSeq(movesSoFar),
 				rotatedSolution,
 				orientation: ori.length() > 1 ? ori.toString() : undefined,
-				view: ori.length() > 1 ? prerotate : undefined,
+				view: ori.length() > 1 ? prerotate?.inv() : undefined,
 				score: 0,
 				stage: state.stages.stageIdToStageMap[chosenStage].name
 			};
@@ -84,4 +98,42 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 		}
 	}
 	return ret;
+
+	function rotateMoves(seq: Move[]) {
+		let rotated = new MoveSeq(seq);
+		for (let i = 0; i < accumulated_rots.length; ++i) {
+			rotated = rotated.pushBackAll(accumulated_rots[i]).tail(accumulated_rots[i].length());
+		}
+		return rotated;
+	}
+
+	function preferRwide(moves: MoveSeq): MoveSeq {
+		for (let i = 0; i < moves.length(); ++i) {
+			if (moves.moves[i].name.slice(0, 1) === 'L') {
+				const rotation = 'x' + moves.moves[i].name.slice(1);
+				const rSeq = new MoveSeq(rotation);
+				const wide = 'r' + moves.moves[i].name.slice(1);
+				const wSeq = new MoveSeq(wide);
+				const prefix = moves.moves.slice(0, i);
+				const suffix = preferRwide(
+					new MoveSeq(moves.moves.slice(i + 1)).pushBackAll(rSeq).tail(rSeq.length())
+				);
+				accumulated_rots.push(rSeq);
+				return new MoveSeq([prefix, wSeq.moves, suffix.moves].flat());
+			}
+			if (moves.moves[i].name.slice(0, 1) === 'l') {
+				const rotation = 'x' + moves.moves[i].name.slice(1);
+				const rSeq = new MoveSeq(rotation);
+				const unWide = 'R' + moves.moves[i].name.slice(1);
+				const wSeq = new MoveSeq(unWide);
+				const prefix = moves.moves.slice(0, i);
+				const suffix = preferRwide(
+					new MoveSeq(moves.moves.slice(i + 1)).pushBackAll(rSeq).tail(rSeq.length())
+				);
+				accumulated_rots.push(rSeq);
+				return new MoveSeq([prefix, wSeq.moves, suffix.moves].flat());
+			}
+		}
+		return moves;
+	}
 }

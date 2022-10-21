@@ -8,6 +8,8 @@ export interface Stage {
 	name: string;
 	mask: MaskT;
 	orientations: string[];
+	frozen_face?: string;
+	free_face?: string;
 }
 export interface StagesState {
 	stageIdToStageMap: { [k: string]: Stage };
@@ -18,6 +20,8 @@ export const new_stage = createAction<{
 	name: string;
 	mask: MaskT;
 	orientations?: string[];
+	frozen_face?: string;
+	free_face?: string;
 }>('new_stage');
 export const delete_stage = createAction<string>('delete_stage');
 export const set_state = createAction<{
@@ -41,7 +45,9 @@ export const stages = createReducer(initialState, (r) => {
 		state.stageIdToStageMap[payload.id] = {
 			mask: Mask.copy(payload.mask),
 			name: payload.name,
-			orientations
+			orientations,
+			frozen_face: payload.frozen_face,
+			free_face: payload.free_face
 		};
 	});
 	r.addCase(delete_stage, (state, { payload }) => {

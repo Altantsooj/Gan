@@ -27,6 +27,21 @@ describe('stages', () => {
 		nextState = stages(nextState, delete_stage('cross'));
 		expect(Object.keys(nextState.stageIdToStageMap).length).to.equal(0);
 	});
+	it('can create new stage with a frozen face', () => {
+		const mask: MaskT = {
+			cp: [0, 0, 0, 0, 0, 0, 0, 0],
+			ep: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
+		};
+		let nextState = stages(
+			initialState,
+			new_stage({ id: 'cross', name: 'cross', mask, frozen_face: 'D' })
+		);
+		expect(JSON.stringify(nextState.stageIdToStageMap['cross'])).to.equal(
+			JSON.stringify({ mask, name: 'cross', orientations: [''], frozen_face: 'D' })
+		);
+		nextState = stages(nextState, delete_stage('cross'));
+		expect(Object.keys(nextState.stageIdToStageMap).length).to.equal(0);
+	});
 	it('can create and edit new stage', () => {
 		const mask: MaskT = {
 			cp: [0, 0, 0, 0, 0, 0, 0, 0],

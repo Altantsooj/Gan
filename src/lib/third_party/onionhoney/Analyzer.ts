@@ -46,10 +46,16 @@ export function is_cmll_solved(cube: CubieCube, oris: MoveSeq[]) {
 		if (CubeUtil.is_cmll_solved(cpre)) return true;
 	}
 }
-export function prerotate_solves(cube: CubieCube, mask: Mask, oris: MoveSeq[]) {
+export function prerotate_solves(cube: CubieCube, mask: Mask, oris: MoveSeq[], freeFace?: string) {
 	for (const prerotate of oris) {
-		const cpre = cube.apply(prerotate);
+		let cpre = cube.apply(prerotate);
 		if (CubeUtil.is_solved(cpre, mask)) return prerotate;
+		if (freeFace) {
+			for (let i = 0; i < 3; ++i) {
+				cpre = cpre.apply(freeFace);
+				if (CubeUtil.is_solved(cpre, mask)) return prerotate;
+			}
+		}
 	}
 	return undefined;
 }
