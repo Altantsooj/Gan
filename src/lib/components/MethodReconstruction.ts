@@ -19,7 +19,7 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 		const e = `Cube\n${visualize(solvedCubes[0])}\ndoes not look solved`;
 		throw e;
 	}
-	let ret = [];
+	const ret = [];
 	const state = store.getState();
 
 	if (!state.methods.methodToStageMap[method]) {
@@ -28,7 +28,6 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 	}
 	const moves = [Move.all['id'], ...solution.moves];
 	let currentStage = 'scrambled';
-	const optionIdToMatch: { [id: string]: boolean } = {};
 	let cube = scrambledCube;
 	let movesSoFar = [];
 	let chosenStage = '';
