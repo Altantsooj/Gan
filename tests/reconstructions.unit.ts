@@ -6,7 +6,13 @@ import {
 	get_oris,
 	type SolutionDesc
 } from '$lib/third_party/onionhoney/Analyzer';
-import { CubeUtil, CubieCube, Mask, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
+import {
+	CubeUtil,
+	CubieCube,
+	Mask,
+	MoveSeq,
+	type MaskT
+} from '$lib/third_party/onionhoney/CubeLib';
 import { expect } from 'chai';
 import { describe, it } from 'vitest';
 import { add_stage, new_method } from '$lib/components/methods';
@@ -83,8 +89,33 @@ LLLFFFRRRBBB
 		store.dispatch(new_stage({ id: '3', name: 'cmll', mask: Mask.cmll_mask, free_face: 'U' }));
 		store.dispatch(new_stage({ id: '4', name: 'lse', mask: Mask.lse_mask }));
 		store.dispatch(new_stage({ id: '5', name: 'solved', mask: Mask.solved_mask }));
+		const crossMask: MaskT = {
+			cp: [0, 0, 0, 0, 0, 0, 0, 0],
+			ep: [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+			eo: [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]
+		};
+		const f2lMask: MaskT = {
+			cp: [0, 0, 0, 0, 1, 1, 1, 1],
+			co: [0, 0, 0, 0, 1, 1, 1, 1],
+			ep: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+			eo: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1]
+		};
+		const ollMask: MaskT = {
+			co: [1, 1, 1, 1, 1, 1, 1, 1],
+			eo: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+			cp: [0, 0, 0, 0, 1, 1, 1, 1],
+			ep: [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1]
+		};
+
+		store.dispatch(
+			new_stage({ id: 'f0', name: 'cross', mask: crossMask, orientations: get_oris('cn') })
+		);
+		store.dispatch(new_stage({ id: 'f1', name: 'f2l', mask: f2lMask }));
+		store.dispatch(new_stage({ id: 'f2', name: 'oll', mask: ollMask }));
+		store.dispatch(new_stage({ id: 'f3', name: 'pll', mask: Mask.solved_mask }));
+
 		expect(Object.keys(store.getState().stages.stageIdToStageMap).toString()).to.equal(
-			'0,2,3,4,5,0.1,1.0,1.1'
+			'0,2,3,4,5,0.1,1.0,1.1,f0,f1,f2,f3'
 		);
 		store.dispatch(new_method({ id: '0', name: 'Roux' }));
 		store.dispatch(add_stage({ method: '0', stage: '0' }));
@@ -108,6 +139,12 @@ LLLFFFRRRBBB
 		expect(store.getState().methods.methodToStageMap['0']['1.0'].toString()).to.equal('2');
 		expect(store.getState().methods.methodToStageMap['0']['1.1'].toString()).to.equal('2');
 		expect(store.getState().stages.stageIdToStageMap['3'].name).to.equal('cmll');
+
+		store.dispatch(new_method({ id: 'f1', name: 'Fridrich' }));
+		store.dispatch(add_stage({ method: 'f1', stage: 'f0' }));
+		store.dispatch(add_stage({ method: 'f1', stage: 'f1', parent: 'f0' }));
+		store.dispatch(add_stage({ method: 'f1', stage: 'f2', parent: 'f1' }));
+		store.dispatch(add_stage({ method: 'f1', stage: 'f3', parent: 'f2' }));
 	}
 	function validateGenericRouxReconstruction(solve: RouxRecord) {
 		const stages = analyzeSolve('1', solve.scramble, solve.original_solution);
@@ -219,5 +256,65 @@ does not look solved`);
 
 	it('has a hardcoded roux analyzer what works', () => {
 		validateRouxReconstruction(solve);
+	});
+
+	interface FridrichRecord {
+		scramble: string;
+		original_solution: string;
+		original_orientation: string;
+		orientation: string;
+		cross: string;
+		f2l: string;
+		oll: string;
+		pll: string;
+	}
+	function validateProvidedFridrichReconstruction(solve: FridrichRecord, stages: SolutionDesc[]) {
+		const spin = new MoveSeq(solve.original_orientation);
+		const scramble = new MoveSeq(solve.scramble);
+		const solution = new MoveSeq(solve.original_solution);
+		const scrambledCube = new CubieCube().apply(scramble);
+		const solvedCube = scrambledCube.apply(solution).apply(spin);
+		expect(visualize(solvedCube).substring(1)).to.equal(
+			`  UUU
+   UUU
+   UUU
+LLLFFFRRRBBB
+LLLFFFRRRBBB
+LLLFFFRRRBBB
+   DDD
+   DDD
+   DDD`
+		);
+		expect(CubeUtil.is_solved(solvedCube, Mask.solved_mask)).to.be.true;
+		//expect(stages.length).to.equal(4);
+		const [cross, f2l, oll, pll] = [0, 1, 2, 3];
+
+		const view = stages[cross].view;
+		if (view) {
+			expect(view.inv() + ' ' + stages[cross].rotatedSolution).to.equal(solve.cross);
+		} else {
+			expect(stages[cross].rotatedSolution.toString()).to.equal(solve.cross);
+		}
+		expect(stages[cross].orientation).to.equal(solve.orientation);
+		expect(stages[f2l].rotatedSolution.toString()).to.equal(solve.f2l);
+		expect(stages[oll].rotatedSolution.toString()).to.equal(solve.oll);
+		expect(stages[pll].rotatedSolution.toString()).to.equal(solve.pll);
+	}
+	const fridrichSolve = {
+		scramble: "F L2 B2 R2 F2 D' B2 U' B2 D2 L D R B' U2 B' L' D2",
+		original_solution:
+			"z2 F2 U2 L F' U l U' l' U2 R U R' D U l U L' U' M' D' U2 R U2 R' U' R U R' U F U' R U R' U2 F' U' F R U' R' U' R U R' F' x R2' D2 R U R' D2 R U' R B2",
+		original_orientation: "y2 x'",
+		orientation: 'x2 ',
+		cross: "x2 y2  z2 B2 U2 R B' U r U' r' ",
+		f2l: "U2 L U L' D U r U R' U' M D' U2 L U2 L' U' L U L' U B U' L U L' U2 B' ",
+		oll: "U' B L U' L' U' L U L' B' ",
+		pll: "x' L2 D2 L U L' D2 L U' L F2 "
+	};
+
+	it('custom analyzer can reconstruct a Fridrich solve', () => {
+		setupSolutionsInStore();
+		const stages = analyzeSolve('f1', fridrichSolve.scramble, fridrichSolve.original_solution);
+		validateProvidedFridrichReconstruction(fridrichSolve, stages);
 	});
 });

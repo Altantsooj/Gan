@@ -86,8 +86,8 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 			const solutionFound: SolutionDesc = {
 				solution: new MoveSeq(movesSoFar),
 				rotatedSolution,
-				orientation: ori.length() > 1 ? ori.toString() : undefined,
-				view: ori.length() > 1 ? prerotate?.inv() : undefined,
+				orientation: ori.length() > 0 ? ori.toString() : undefined,
+				view: ori.length() > 0 ? prerotate?.inv() : undefined,
 				score: 0,
 				stage: state.stages.stageIdToStageMap[chosenStage].name
 			};

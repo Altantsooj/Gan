@@ -189,7 +189,7 @@ validateUserSolution({
 				playHead = startOffset;
 				stickering = s.stage;
 				if (stages[0].orientation) {
-					stickeringOrientation = new MoveSeq(stages[0].orientation).toString();
+					stickeringOrientation = new MoveSeq(stages[0].orientation).inv().toString();
 				}
 				if (optimized[i] && optimized[i].length) {
 					alternateSolution = { ...optimized[i][0], rotatedSolution: new MoveSeq([]) };
