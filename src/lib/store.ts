@@ -8,6 +8,7 @@ import { nav } from '$lib/components/nav';
 import type { Writable } from 'svelte/store';
 import { methods } from './components/methods';
 import { stages } from './components/stages';
+import { preferences } from './components/preferences';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function svelteStoreEnhancer(createStoreApi: (arg0: any, arg1: any) => any) {
@@ -34,6 +35,7 @@ const reducer = {
 	nav,
 	methods,
 	stages,
+	preferences,
 	solves
 };
 const rawStore = configureStore({ reducer, enhancers: [svelteStoreEnhancer] });

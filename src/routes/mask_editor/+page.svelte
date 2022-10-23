@@ -5,7 +5,7 @@
 	import { delete_method, new_method, remove_stage, rename_stage } from '$lib/components/methods';
 	import { store } from '$lib/store';
 	import { onMount, onDestroy } from 'svelte';
-	import { dispatch, watchAll } from '$lib/actionlog';
+	import { dispatch } from '$lib/actionlog';
 	import { create as createMethod } from '$lib/actionlog';
 	import { new_stage, type Stage } from '$lib/components/stages';
 	import { Mask, type MaskT } from '$lib/third_party/onionhoney/CubeLib';
@@ -81,11 +81,6 @@
 			stage = undefined;
 		}
 	}
-
-	onMount(() => {
-		watchAll('methods');
-		watchAll('stages');
-	});
 
 	onDestroy(() => {
 		type MaskMap = { [k: string]: { mask: MaskT } };

@@ -60,10 +60,37 @@
 		</Button>
 	</Actions>
 {:else}
-	<p>
-		<Avatar />
-		{$store.auth.email}
-	</p>
-	<p>{$store.auth.name}</p>
-	<Button on:click={signout} variant="raised">Sign Out</Button>
+	<div class="row">
+		<div class="column">
+			<Avatar />
+		</div>
+		<div class="column">
+			<p>{$store.auth.name}</p>
+			<p>{$store.auth.email}</p>
+		</div>
+		<div class="column">
+			<Button on:click={signout} variant="raised">Sign Out</Button>
+		</div>
+	</div>
 {/if}
+
+<style>
+	.row {
+		display: flex;
+		flex-direction: row;
+	}
+
+	.column {
+		display: flex;
+		flex-direction: column;
+		padding: 0.5em;
+		justify-content: center;
+	}
+
+	p {
+		margin: 0;
+		padding: 0;
+		margin-left: 1em;
+		margin-right: 4em;
+	}
+</style>
