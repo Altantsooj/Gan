@@ -22,10 +22,8 @@
 	$: time = solve && solve.time / 10;
 	$: moveCount = solve?.moves.filter((x) => x.timestamp > 0).length + 1;
 	$: console.log(solve);
-	$: offset = -1;
-	$: scrambleArray = toArray(
-		solve?.moves.filter((x) => x.timestamp === 0).map((x) => x.move)
-	).slice(0, offset);
+	$: offset = solve?.numMovesToScramble;
+	$: scrambleArray = toArray(solve?.moves.map((x) => x.move)).slice(0, offset);
 	$: scrambleString = scrambleArray.join(' ');
 	$: timestamps = solve?.moves.map((x) => x.timestamp);
 	$: solutionString = toArray(solve?.moves.map((x) => x.move))
