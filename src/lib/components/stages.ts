@@ -1,3 +1,4 @@
+import { get_oris } from '$lib/third_party/onionhoney/Analyzer';
 import { Mask, type MaskT } from '$lib/third_party/onionhoney/CubeLib';
 import * as toolkitRaw from '@reduxjs/toolkit';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,6 +24,10 @@ export const new_stage = createAction<{
 	frozen_face?: string;
 	free_face?: string;
 }>('new_stage');
+export const use_orientations = createAction<{ id: string; orientation_spec: string }>(
+	'use_orientations'
+);
+export const set_free_face = createAction<{ id: string; free_face: string }>('set_free_face');
 export const delete_stage = createAction<string>('delete_stage');
 export const set_state = createAction<{
 	id: string;
@@ -49,6 +54,12 @@ export const stages = createReducer(initialState, (r) => {
 			frozen_face: payload.frozen_face,
 			free_face: payload.free_face
 		};
+	});
+	r.addCase(use_orientations, (state, { payload }) => {
+		state.stageIdToStageMap[payload.id].orientations = get_oris(payload.orientation_spec);
+	});
+	r.addCase(set_free_face, (state, { payload }) => {
+		state.stageIdToStageMap[payload.id].free_face = payload.free_face;
 	});
 	r.addCase(delete_stage, (state, { payload }) => {
 		delete state.stageIdToStageMap[payload];

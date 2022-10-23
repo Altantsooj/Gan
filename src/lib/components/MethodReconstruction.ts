@@ -89,7 +89,8 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 				orientation: ori.length() > 0 ? ori.toString() : undefined,
 				view: ori.length() > 0 ? prerotate?.inv() : undefined,
 				score: 0,
-				stage: state.stages.stageIdToStageMap[chosenStage].name
+				stage: state.stages.stageIdToStageMap[chosenStage].name,
+				stageId: chosenStage
 			};
 			ret.push(solutionFound);
 			currentStage = chosenStage;

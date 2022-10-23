@@ -2,12 +2,18 @@
 	import BoxedList from '$lib/components/BoxedList.svelte';
 	import BoxedStage from '$lib/components/BoxedStage.svelte';
 	import SVGCube from '$lib/components/SVGCube.svelte';
-	import { delete_method, new_method, remove_stage, rename_stage } from '$lib/components/methods';
+	import {
+		add_stage,
+		delete_method,
+		new_method,
+		remove_stage,
+		rename_stage
+	} from '$lib/components/methods';
 	import { store } from '$lib/store';
 	import { onMount, onDestroy } from 'svelte';
 	import { dispatch } from '$lib/actionlog';
 	import { create as createMethod } from '$lib/actionlog';
-	import { new_stage, type Stage } from '$lib/components/stages';
+	import { new_stage, stages, type Stage } from '$lib/components/stages';
 	import { Mask, type MaskT } from '$lib/third_party/onionhoney/CubeLib';
 
 	$: entries = Object.entries($store.methods.methodToNameMap);
@@ -49,6 +55,27 @@
 	let stage: [string, Stage] | undefined = undefined;
 	function stageCallback(event: CustomEvent) {
 		stage = getStageByName(event.detail.stage);
+	}
+	function removeCallback(method: string, stageName: string) {
+		if ($store.auth.uid) {
+			const stageId = getStageByName(stageName)[0];
+			dispatch('methods', method, $store.auth.uid, remove_stage({ method, stage: stageId }));
+		}
+	}
+	function addCallback(method: string, parentStageName: string, stageName: string) {
+		if ($store.auth.uid) {
+			let parentStageId: string | undefined = undefined;
+			if (parentStageName !== 'scrambled') {
+				console.log({ parentStageName, lookup: getStageByName(parentStageName) });
+				parentStageId = getStageByName(parentStageName)[0];
+			}
+			const stageId = getStageByName(stageName)[0];
+			const doc = { method, parent: parentStageId, stage: stageId };
+			if (!parentStageId) {
+				delete doc.parent;
+			}
+			dispatch('methods', method, $store.auth.uid, add_stage(doc));
+		}
 	}
 	let pendingStage = '';
 	function renameStage(event: CustomEvent) {
@@ -105,7 +132,13 @@
 	<div class="row">
 		<BoxedList {items} on:destroy={destroy} on:new={create} on:select={selectMethod} />
 		{#if methodIndex !== undefined}
-			<BoxedStage method={entries[methodIndex][0]} {stageCallback} on:stage={stageCallback} />
+			<BoxedStage
+				method={entries[methodIndex][0]}
+				{stageCallback}
+				on:stage={stageCallback}
+				{addCallback}
+				{removeCallback}
+			/>
 		{/if}
 	</div>
 	<div class="row">

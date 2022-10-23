@@ -10,6 +10,7 @@
 	import { get_roux_stages, type SolutionDesc } from '$lib/third_party/onionhoney/Analyzer';
 	import { MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 	import { makeOptimizedData } from '$lib/optimizer/optimizer';
+	import { analyzeSolve } from '$lib/components/MethodReconstruction';
 
 	function toArray(any: ArrayLike<unknown> | Iterable<unknown>) {
 		if (any) return Array.from(any);
@@ -34,7 +35,19 @@
 	$: cubeSS = scrambleString;
 	let alternateScramble = scrambleString;
 
-	$: stages = get_roux_stages(scrambleString, solutionString);
+	function getStages(scramble: string, solution: string) {
+		const method = $store.preferences.solutionMethodId;
+		if (method) {
+			console.log('Get stages, via method: ', method);
+			return analyzeSolve(method, scramble, solution);
+		}
+		return get_roux_stages(scramble, solution);
+	}
+
+	$: stages = getStages(scrambleString, solutionString);
+	$: edges = stages.map((s, i) =>
+		i === 0 ? edgeFrom('scrambled', s.stage) : edgeFrom(stages[i - 1].stage, s.stage)
+	);
 	$: cubeAlg = makeText(stages);
 	$: optimized = makeOptimizedData(scrambleString, stages) as {
 		orientation?: string;
@@ -50,7 +63,12 @@
 		console.log('navigate to ', sourcePage);
 		goto('/' + sourcePage);
 	}
-
+	function translate(key: string) {
+		return translation[key] || key;
+	}
+	function edgeFrom(s0: string, s1: string) {
+		return s0 + '→' + s1;
+	}
 	const translation: { [k: string]: string } = {
 		fb: 'First block',
 		ss: 'Square',
@@ -74,7 +92,7 @@
 	function makeDataTable(displayMode: string) {
 		solveData = [];
 		let startTimeOffset = scrambleArray.length;
-		stages.forEach((s) => {
+		stages.forEach((s, i) => {
 			let endOffset = startTimeOffset + s.solution.length();
 			let yValue = s.solution.length();
 			if (endOffset > 0 && startTimeOffset > 0) {
@@ -85,7 +103,8 @@
 					yValue = timing;
 				}
 			}
-			let data: DataPoint = { xValue: translation[s.stage], yValue };
+			const xValue = translate(edges[i]);
+			let data: DataPoint = { xValue, yValue };
 			solveData.push(data);
 			startTimeOffset = endOffset;
 		});
@@ -125,7 +144,7 @@
 		algStr += orientation + ' ' + prerotate.inv() + ' ';
 		stages.forEach((s, i) => {
 			let quicker = '?';
-			algStr += s.rotatedSolution + ' // ' + translation[s.stage];
+			algStr += s.rotatedSolution + ' // ' + translate(edges[i]);
 			if (optimized && optimized[i] && optimized[i].length) {
 				const spin = new MoveSeq(optimized[i][0]?.orientation || '');
 				const moves = new MoveSeq(optimized[i][0].solution.moves);
@@ -184,10 +203,15 @@ validateUserSolution({
 		cubeAlg = makeText(stages);
 		console.log('SHOW: ', stageSelected, ' scramble offset ', startOffset);
 		stages.forEach((s, i) => {
-			if (translation[s.stage] === stageSelected || s.stage === stageSelected) {
+			if (s.stage === stageSelected || edges[i] === stageSelected) {
 				console.log('SHOW POSITION: ', startOffset, ' for ', stageSelected);
 				playHead = startOffset;
-				stickering = s.stage;
+				if (s.stageId) {
+					stickering = i > 0 ? stages[i - 1].stageId || '' : 'scrambled';
+					stickering += '|' + s.stageId;
+				} else {
+					stickering = s.stage;
+				}
 				if (stages[0].orientation) {
 					stickeringOrientation = new MoveSeq(stages[0].orientation).inv().toString();
 				}
@@ -209,7 +233,7 @@ validateUserSolution({
 			} else if (nextStage === undefined) {
 				nextStage = s.stage;
 			}
-			if (translation[s.stage] === stageSelected || s.stage === stageSelected) {
+			if (s.stage === stageSelected || edges[i] === stageSelected) {
 				endOffset = startOffset;
 			}
 		});
@@ -260,13 +284,13 @@ validateUserSolution({
 		<table cellspacing="0" align="center">
 			<tr><td align="left">Stage</td><td>Length</td><td>Time</td><td align="left">Solution</td></tr>
 			{#each stages as stage, i}
-				<tr class={i % 2 ? 'odd' : 'even'} on:click={() => selectStage(translation[stage.stage])}>
-					<td align="left">{translation[stage.stage]}</td><td>{stage.solution.length()}</td>
+				<tr class={i % 2 ? 'odd' : 'even'} on:click={() => selectStage(stage.stage)}>
+					<td align="left">{translate(edges[i])}</td><td>{stage.solution.length()}</td>
 					<td>{timings[stage.stage]}</td><td align="left">{stage.rotatedSolution}</td>
 				</tr>
 				{#if alternateSolution && alternateSolution.stage === stage.stage && alternateSolution.solution.length() > 0}
 					<tr class={'alternate'} on:click={() => playAlternate()}>
-						<td align="left"><em>vs: </em>{translation[stage.stage]}</td><td
+						<td align="left"><em>vs: </em>{translate(edges[i])}</td><td
 							>{alternateSolution.solution.length()}</td
 						>
 						<td

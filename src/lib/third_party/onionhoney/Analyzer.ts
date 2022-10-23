@@ -38,6 +38,7 @@ export type SolutionDesc = {
 	orientation?: string;
 	view?: MoveSeq;
 	stage: string;
+	stageId?: string;
 };
 
 export function is_cmll_solved(cube: CubieCube, oris: MoveSeq[]) {

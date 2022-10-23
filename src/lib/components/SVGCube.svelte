@@ -8,7 +8,14 @@
 	import { Text } from '@smui/list';
 	import Textfield from '@smui/textfield';
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { delete_stage, new_stage, set_state, type Stage } from './stages';
+	import {
+		delete_stage,
+		new_stage,
+		set_free_face,
+		set_state,
+		use_orientations,
+		type Stage
+	} from './stages';
 	import { Cube, Facelet } from './SVGCube';
 
 	const dispatch = createEventDispatcher();
@@ -84,8 +91,16 @@
 			svgCube.setState(state, facelet);
 		}
 	}
-	onMount(async () => {
+	async function redisplay() {
 		displayMask(mask);
+		if (stage) {
+			orientationSpec =
+				$store.stages.stageIdToStageMap[stage[0]].orientations.length > 1 ? 'cn' : '';
+			freeFace = $store.stages.stageIdToStageMap[stage[0]].free_face || '';
+		}
+	}
+	onMount(async () => {
+		redisplay();
 	});
 	export let allStages: [string, Stage][] = [];
 	export let stage: [string, Stage] | undefined = undefined;
@@ -94,7 +109,7 @@
 	$: if (stage && $store.stages.stageIdToStageMap[stage[0]]) {
 		stage[1] = $store.stages.stageIdToStageMap[stage[0]];
 		mask = Mask.copy(stage[1].mask);
-		displayMask(mask);
+		redisplay();
 	}
 
 	let oldStage: [string, Stage] | undefined = undefined;
@@ -175,6 +190,32 @@
 		lastInput = e.target as HTMLInputElement;
 		unusedText = lastInput.value;
 	}
+
+	let orientationSpec = '';
+	let freeFace = '';
+	let lastOrientationSpec = '';
+	let lastFreeFace = '';
+
+	$: if (stage && orientationSpec !== lastOrientationSpec) {
+		if ($store.auth.uid) {
+			lastOrientationSpec = orientationSpec;
+			const id = stage[0];
+			dispatchToFirebase(
+				'stages',
+				id,
+				$store.auth.uid,
+				use_orientations({ id, orientation_spec: orientationSpec })
+			);
+		}
+	}
+
+	$: if (stage && freeFace !== lastFreeFace) {
+		if ($store.auth.uid) {
+			lastFreeFace = freeFace;
+			const id = stage[0];
+			dispatchToFirebase('stages', id, $store.auth.uid, set_free_face({ id, free_face: freeFace }));
+		}
+	}
 </script>
 
 <div class="container">
@@ -201,6 +242,8 @@
 		{/if}
 		<Button on:click={() => (dialogOpen = true)}>New Stage</Button>
 		<Button on:click={destroyStage}>Delete</Button>
+		<Textfield bind:value={orientationSpec} label="Orientation Spec" />
+		<Textfield bind:value={freeFace} label="Free Face" />
 	</div>
 	<Dialog
 		bind:open={dialogOpen}

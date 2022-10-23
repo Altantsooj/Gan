@@ -3,6 +3,7 @@
 	import type { MaskT } from '$lib/third_party/onionhoney/CubeLib';
 	import { TwistyPlayer } from 'cubing/twisty';
 	import { onMount } from 'svelte';
+	import { store } from '$lib/store';
 
 	const twistyPlayer: TwistyPlayer = new TwistyPlayer();
 	export let controlPanel = 'none';
@@ -84,6 +85,12 @@
 		stageToMask['pre_lse'] = stageToMask['cmll'];
 		if (stageToMask[stickering]) {
 			setStickers(stageToMask[stickering], stageToMask['pre_' + stickering]);
+		} else if (stickering.indexOf('|') !== -1) {
+			const keys = stickering.split('|');
+			console.log({ keys });
+			const preMask = $store.stages.stageIdToStageMap[keys[0]]?.mask;
+			const mask = $store.stages.stageIdToStageMap[keys[1]].mask;
+			setStickers(mask, preMask);
 		} else {
 			setStickers(Mask.solved_mask);
 		}
