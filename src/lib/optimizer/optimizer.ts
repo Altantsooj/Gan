@@ -42,6 +42,11 @@ export function makeOptimizedData(
 	rstages: SolutionDesc[]
 ): OptimizedStage[][] {
 	if (rstages[0].stageId) {
+		console.log('*************************');
+		console.log('*************************');
+		console.log('***    NEW SOLVER    ***');
+		console.log('*************************');
+		console.log('*************************');
 		return makeOptimizedDataFromStages(scrambleString, rstages);
 	}
 	return makeOptimizedRouxData(scrambleString, rstages);

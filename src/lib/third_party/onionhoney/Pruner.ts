@@ -287,29 +287,11 @@ export function makePrunerConfigFromMask(name: string, mask: MaskT, priorMask?: 
 		max_depth: 5
 	};
 	if (priorMask) {
-		prunerConfig.corner = prunerConfig.corner.map((c, i) => (priorMask.cp[i] === 1 ? I : c));
-		prunerConfig.edge = prunerConfig.edge.map((c, i) => (priorMask.ep[i] === 1 ? I : c));
-		prunerConfig.moveset = [
-			'U',
-			"U'",
-			'U2',
-			'R',
-			"R'",
-			'R2',
-			'r',
-			"r'",
-			'r2',
-			"M'",
-			'M',
-			'M2',
-			"F'",
-			'F',
-			'F2',
-			"B'",
-			'B',
-			'B2'
-		];
-		prunerConfig.moveset = rrwmu;
+		//prunerConfig.corner = prunerConfig.corner.map((c, i) => (priorMask.cp[i] === 1 ? I : c));
+		//prunerConfig.edge = prunerConfig.edge.map((c, i) => (priorMask.ep[i] === 1 ? I : c));
+		//prunerConfig.corner = prunerConfig.corner.map((c, i) => (Mask.fb_mask.cp[i] === 1 ? I : c));
+		//prunerConfig.edge = prunerConfig.edge.map((c, i) => (Mask.fb_mask.ep[i] === 1 ? I : c));
+		prunerConfig.moveset = [...rrwmu, ...prunerConfig.moveset];
 		//prunerConfig.moveset = htm_rwm;
 		//prunerConfig.max_depth = 8;
 	}
