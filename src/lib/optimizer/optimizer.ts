@@ -12,7 +12,7 @@ export interface OptimizedStage {
 	stage: string;
 	solution: MoveSeq;
 	score: number;
-};
+}
 
 export function movesToString(seq: MoveSeq): string {
 	return seq.moves.map((x) => x.name).join(' ');
@@ -23,7 +23,10 @@ export function visualize(cube: CubieCube): string {
 	return FaceletCube.to_unfolded_cube_str(faceletCube);
 }
 
-export function makeOptimizedData(scrambleString: string, rstages: SolutionDesc[]): OptimizedStage[][] {
+export function makeOptimizedData(
+	scrambleString: string,
+	rstages: SolutionDesc[]
+): OptimizedStage[][] {
 	if (rstages[0].stageId) {
 		return makeOptimizedDataFromStages(scrambleString, rstages);
 	}
@@ -32,23 +35,19 @@ export function makeOptimizedData(scrambleString: string, rstages: SolutionDesc[
 export function makeOptimizedDataFromStages(scrambleString: string, rstages: SolutionDesc[]) {
 	const optimized: OptimizedStage[][] = [];
 
-	/*
-	for (let i = 0; i < 1; ++i) {
+	let cube = new CubieCube().apply(scrambleString);
+	for (let i = 0; i < rstages.length; ++i) {
 		const stage = rstages[i];
-		const ori = stage.orientation || '';
 		const config: SolverConfig = {
 			premoves: [''],
 			num_solution: 2,
-			upper_limit: 9
+			upper_limit: 12
 		};
+		const ori = stage.orientation || '';
 		const spin = new MoveSeq(ori);
-		let cube = new CubieCube().apply(scrambleString).changeBasis(spin);
+		cube = cube.changeBasis(spin);
 		optimized.push(
-			solve(
-				stage.stageId || stage.stage,
-				cube,
-				config
-			)
+			solve(stage.stageId || stage.stage, cube, config)
 				.map((sol) => ({
 					...sol,
 					orientation: ori,
@@ -56,12 +55,22 @@ export function makeOptimizedDataFromStages(scrambleString: string, rstages: Sol
 				}))
 				.sort((x, y) => x.score - y.score)
 		);
+		if (stage.view) {
+			cube = cube.apply(stage.view!.inv());
+		}
+		cube = cube.apply(stage.rotatedSolution);
+		if (i === 0) {
+			const v = visualize(cube);
+			console.log(v);
+		}
 	}
-	*/
 
 	return optimized;
 }
-export function makeOptimizedRouxData(scrambleString: string, rstages: SolutionDesc[]): OptimizedStage[][] {
+export function makeOptimizedRouxData(
+	scrambleString: string,
+	rstages: SolutionDesc[]
+): OptimizedStage[][] {
 	const optimized = [];
 	if (rstages && rstages[0] && rstages[0].stage === 'fb') {
 		console.log({

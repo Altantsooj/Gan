@@ -1,4 +1,9 @@
-import { makeOptimizedData, makeOptimizedRouxData, movesToString, visualize } from '$lib/optimizer/optimizer';
+import {
+	makeOptimizedData,
+	makeOptimizedRouxData,
+	movesToString,
+	visualize
+} from '$lib/optimizer/optimizer';
 import {
 	analyze,
 	get_oris,

@@ -327,9 +327,23 @@ LLLFFFRRRBBB
 			"B2' L2 B' L2 R' F R F2 S R2 B F' R' U2 F U F2 U' F' F B' R2' F' R' S2' R' B U' B' R' S2' R' B U B' R' B F U F' U F U2 F' U F U F' L' F U F' U' F' L F2 U' F' U S U2 S' U2 S' U S U' S U2 S U S2 U' S' U2 S' U2 S2' U2"
 		);
 		const optimized = makeOptimizedData(scramble, breakdown);
-		expect(optimized.length).to.equal(1);
+		expect(optimized.length).to.equal(6);
 		expect(optimized[0].length).to.equal(2);
 		expect(optimized[0][0].solution.toString()).to.equal("F' M' U M F B ");
 		expect(optimized[0][1].solution.toString()).to.equal("M' F' U M F B ");
+		expect(optimized[1].length).to.equal(2);
+		expect(optimized[1][0].solution.toString()).to.equal("R U2 R' U2 R' ");
+		expect(optimized[1][1].solution.toString()).to.equal("U R U R' U' R' ");
+		expect(optimized[2].length).to.equal(2);
+		expect(optimized[2][0].solution.toString()).to.equal("U2 r U M2 U' R ");
+		expect(optimized[2][1].solution.toString()).to.equal("r' U2 R U' r2 U R ");
+		expect(optimized[3].length).to.equal(0);
+		//expect(optimized[3][0].solution.toString()).to.equal("U2 F' R U R ");
+		//expect(optimized[3][1].solution.toString()).to.equal("D' F2 B' U' ");
+		expect(optimized[4].length).to.equal(1);
+		expect(optimized[4][0].solution.toString()).to.equal(' ');
+		expect(optimized[5].length).to.equal(2);
+		expect(optimized[5][0].solution.toString()).to.equal("U r U R' U M2 U R U R' ");
+		expect(optimized[5][1].solution.toString()).to.equal("U R' U2 r' U R2 U r' U2 r' ");
 	});
 });

@@ -1,5 +1,5 @@
 /* ignore file coverage */
-import { CubieCube, Move, type MaskT } from './CubeLib';
+import { CubieCube, Mask, Move, type MaskT } from './CubeLib';
 import { cartesianProduct } from './Math';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if ((globalThis as any).$RefreshReg$ === undefined) {
@@ -36,7 +36,7 @@ enum PrunerPiece {
 	I,
 	X
 } // Solved, Oriented, Ignore, Exclude
-const { S, I, O } = PrunerPiece;
+const { S, I, O, X } = PrunerPiece;
 
 export type PrunerDef = {
 	corner: PrunerPiece[];
@@ -143,7 +143,9 @@ export function Pruner(config: PrunerConfig): PrunerT {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			total_expanded += frontier.length;
 		}
-		//console.log(`${name} pruning table generated. depth = ${max_depth}. size = ${total_expanded}`)
+		console.log(
+			`${config.name} pruning table generated. depth = ${max_depth}. size = ${total_expanded}`
+		);
 		if (config.rev_lookup_depth) {
 			// console.log(`${name} pruning reverse lookup generated. depth = ${config.rev_lookup_depth}. size = ${level_states.map(x => x.length).reduce((x,y)=>x+y)}`)
 		}
@@ -270,18 +272,46 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 	};
 };
 
-export function makePrunerConfigFromMask(name: string, mask: MaskT) {
-	console.log(JSON.stringify(mask))
+export function makePrunerConfigFromMask(name: string, mask: MaskT, priorMask?: MaskT) {
+	console.log(JSON.stringify(mask));
 	const tp = mask.tp ? mask.tp : new Array(6).fill(0);
-	const ret = prunerFactory({
+	const prunerConfig = {
 		name,
-		corner: mask.cp.map((p, i) => p === 1 ? S : (mask.co ? (mask.co[i] === 1 ? O : I) : I)),
-		edge: mask.ep.map((p, i) => p === 1 ? S : (mask.eo ? (mask.eo[i] === 1 ? O : I) : I)),
-		center: tp.map((p, i) => p === 1 ? S : I),
-		solved_states: [""],
+		corner: mask.cp.map((p, i) => (p === 1 ? S : mask.co ? (mask.co[i] === 1 ? O : I) : I)),
+		edge: mask.ep.map((p, i) => (p === 1 ? S : mask.eo ? (mask.eo[i] === 1 ? O : I) : I)),
+		center: tp.map((p, i) => (p === 1 ? S : I)),
+		solved_states: [''],
 		moveset: htm_rwm,
 		max_depth: 5
-	});
+	};
+	if (priorMask) {
+		prunerConfig.corner = prunerConfig.corner.map((c, i) => (priorMask.cp[i] === 1 ? I : c));
+		prunerConfig.edge = prunerConfig.edge.map((c, i) => (priorMask.ep[i] === 1 ? I : c));
+		prunerConfig.moveset = [
+			'U',
+			"U'",
+			'U2',
+			'R',
+			"R'",
+			'R2',
+			'r',
+			"r'",
+			'r2',
+			"M'",
+			'M',
+			'M2',
+			"F'",
+			'F',
+			'F2',
+			"B'",
+			'B',
+			'B2'
+		];
+		prunerConfig.moveset = rrwmu;
+		//prunerConfig.moveset = htm_rwm;
+		//prunerConfig.max_depth = 8;
+	}
+	const ret = prunerFactory(prunerConfig);
 	return ret;
 }
 

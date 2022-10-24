@@ -233,10 +233,12 @@ export function analyze_roux_solve(cube: CubieCube, solve: MoveSeq) {
 	}
 }
 
+let lastMask: MaskT | undefined = undefined;
 export function getSolverFromStageId(stageId: string) {
 	const stage: Stage = store.getState().stages.stageIdToStageMap[stageId];
 	const mask: MaskT = stage.mask;
-	const config = makePrunerConfigFromMask(stage.name, mask);
+	const config = makePrunerConfigFromMask(stage.name, mask, lastMask);
+	lastMask = mask;
 	return solverFactory(config);
 }
 export function solve(solver_str: string, cube: CubieCube, config: SolverConfig) {
@@ -254,8 +256,6 @@ export function solve(solver_str: string, cube: CubieCube, config: SolverConfig)
 		)
 		.flat();
 	const ret = solutions.sort((x, y) => x.score - y.score).slice(0, num_solution);
-	console.log(ret.length)
-	console.log({solver_str, config, soln: ret[0].solution.toString()})
 	return ret;
 }
 
