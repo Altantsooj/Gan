@@ -1,4 +1,4 @@
-import { makeOptimizedData, movesToString, visualize } from '$lib/optimizer/optimizer';
+import { makeOptimizedData, makeOptimizedRouxData, movesToString, visualize } from '$lib/optimizer/optimizer';
 import {
 	analyze,
 	get_oris,
@@ -36,7 +36,7 @@ describe('optimizer can find helpful shorter solutions', () => {
 		const orientation = "y' x2 ";
 		const userFB = { stage: 'fb', orientation, solution: "B' x2 y U' L2 D' L y' u2 f' F U S U2 R" };
 		const solutionArray = [makeSolutionDesc(userFB)];
-		const optimized = makeOptimizedData(scramble, solutionArray);
+		const optimized = makeOptimizedRouxData(scramble, solutionArray);
 		console.log({ optimized });
 		const computedSolution = orientation + movesToString(optimized[0][0].solution);
 		expect(computedSolution).to.equal("y' x2 x2 R' B' R' M' B' R D2");
@@ -51,7 +51,7 @@ describe('optimizer can find helpful shorter solutions', () => {
 		expect(CubeUtil.is_solved(cube, Mask.fb_mask)).to.be.true;
 		const solvedScramble = scramble + ' ' + computedSolution + orientation;
 		console.log(solvedScramble);
-		const preSolved = makeOptimizedData(solvedScramble, solutionArray);
+		const preSolved = makeOptimizedRouxData(solvedScramble, solutionArray);
 		expect(movesToString(preSolved[0][0].solution)).to.equal('');
 		expect(preSolved[0][0].solution.moves.length).to.equal(0);
 	});
@@ -200,7 +200,7 @@ describe('optimizer can find helpful shorter solutions', () => {
 			solution: "B' x2 y U' L2 D' L y' u2 f' F U S U2 R"
 		};
 		const solutionArray = [makeSolutionDesc(userFB), makeSolutionDesc(userSS)];
-		const optimized = makeOptimizedData(scramble, solutionArray);
+		const optimized = makeOptimizedRouxData(scramble, solutionArray);
 		const computedSolution = userFB.solution + movesToString(optimized[1][0].solution);
 		expect(computedSolution).to.equal(
 			"B' x2 y U' L2 D' L y' u2 f' F U S U2 R y'  R U' R' U R U' R2"
@@ -257,7 +257,7 @@ describe('optimizer can find helpful shorter solutions', () => {
 			lse: "M' U2 M U M U M U2 M U' M2 U  "
 		};
 		const solArray = userSolutionToSolutionArray(userSolution);
-		const optimized = makeOptimizedData(userSolution.scramble, solArray);
+		const optimized = makeOptimizedRouxData(userSolution.scramble, solArray);
 		expect(optimized[0][0].orientation).to.equal("x2 y'");
 		expect(optimized[0][0].solution.toString()).to.equal("x2 D' r B2 R' D F' ");
 		const spin = new MoveSeq(userSolution.orientation);
@@ -289,7 +289,7 @@ describe('optimizer can find helpful shorter solutions', () => {
 		}
 		it(`validates${preprocessed} ${userSolution.scramble} and its improved stages`, () => {
 			const solArray = userSolutionToSolutionArray(userSolution);
-			const optimized = makeOptimizedData(userSolution.scramble, solArray);
+			const optimized = makeOptimizedRouxData(userSolution.scramble, solArray);
 			const spin = new MoveSeq(userSolution.orientation);
 			let cube = new CubieCube().apply(userSolution.scramble).apply(spin);
 			const userFBCube = cube.apply(new MoveSeq(userSolution.fb));

@@ -7,6 +7,13 @@ import {
 } from '$lib/third_party/onionhoney/Analyzer';
 import { CubieCube, FaceletCube, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 
+export interface OptimizedStage {
+	orientation?: string;
+	stage: string;
+	solution: MoveSeq;
+	score: number;
+};
+
 export function movesToString(seq: MoveSeq): string {
 	return seq.moves.map((x) => x.name).join(' ');
 }
@@ -16,7 +23,45 @@ export function visualize(cube: CubieCube): string {
 	return FaceletCube.to_unfolded_cube_str(faceletCube);
 }
 
-export function makeOptimizedData(scrambleString: string, rstages: SolutionDesc[]) {
+export function makeOptimizedData(scrambleString: string, rstages: SolutionDesc[]): OptimizedStage[][] {
+	if (rstages[0].stageId) {
+		return makeOptimizedDataFromStages(scrambleString, rstages);
+	}
+	return makeOptimizedRouxData(scrambleString, rstages);
+}
+export function makeOptimizedDataFromStages(scrambleString: string, rstages: SolutionDesc[]) {
+	const optimized: OptimizedStage[][] = [];
+
+	/*
+	for (let i = 0; i < 1; ++i) {
+		const stage = rstages[i];
+		const ori = stage.orientation || '';
+		const config: SolverConfig = {
+			premoves: [''],
+			num_solution: 2,
+			upper_limit: 9
+		};
+		const spin = new MoveSeq(ori);
+		let cube = new CubieCube().apply(scrambleString).changeBasis(spin);
+		optimized.push(
+			solve(
+				stage.stageId || stage.stage,
+				cube,
+				config
+			)
+				.map((sol) => ({
+					...sol,
+					orientation: ori,
+					stage: stage.stage
+				}))
+				.sort((x, y) => x.score - y.score)
+		);
+	}
+	*/
+
+	return optimized;
+}
+export function makeOptimizedRouxData(scrambleString: string, rstages: SolutionDesc[]): OptimizedStage[][] {
 	const optimized = [];
 	if (rstages && rstages[0] && rstages[0].stage === 'fb') {
 		console.log({
@@ -63,7 +108,6 @@ export function makeOptimizedData(scrambleString: string, rstages: SolutionDesc[
 			optimized.push([
 				{
 					stage: 'cmll',
-					premove: '',
 					solution: new MoveSeq([]),
 					score: 0
 				}
