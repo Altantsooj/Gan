@@ -1,4 +1,4 @@
-import { visualize } from '$lib/optimizer/optimizer';
+import { makeOptimizedData, visualize } from '$lib/optimizer/optimizer';
 import { store } from '$lib/store';
 import { new_stage } from '$lib/components/stages';
 import {
@@ -316,5 +316,20 @@ LLLFFFRRRBBB
 		setupSolutionsInStore();
 		const stages = analyzeSolve('f1', fridrichSolve.scramble, fridrichSolve.original_solution);
 		validateProvidedFridrichReconstruction(fridrichSolve, stages);
+	});
+
+	it('custom analyzer solve can be optimized', () => {
+		setupSolutionsInStore();
+		const scramble = "U2 L2 U2 F' R2 B' L' B' L D' L2' U L2' D2' R2 F2 U2 F2 R2 R2' L2' D";
+		const breakdown = analyzeSolve(
+			'0',
+			scramble,
+			"B2' L2 B' L2 R' F R F2 S R2 B F' R' U2 F U F2 U' F' F B' R2' F' R' S2' R' B U' B' R' S2' R' B U B' R' B F U F' U F U2 F' U F U F' L' F U F' U' F' L F2 U' F' U S U2 S' U2 S' U S U' S U2 S U S2 U' S' U2 S' U2 S2' U2"
+		);
+		const optimized = makeOptimizedData(scramble, breakdown);
+		expect(optimized.length).to.equal(1);
+		expect(optimized[0].length).to.equal(2);
+		expect(optimized[0][0].solution.toString()).to.equal("F' M' U M F B ");
+		expect(optimized[0][1].solution.toString()).to.equal("M' F' U M F B ");
 	});
 });
