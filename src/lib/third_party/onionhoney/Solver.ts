@@ -220,7 +220,7 @@ function Solver(config: SolverConfig): SolverT {
 	return { solve, is_solved, getPruners };
 }
 
-function solverFactory(prunerConfig: PrunerConfig) {
+export function solverFactory(prunerConfig: PrunerConfig) {
 	const pruner = CachedPruner.get(prunerConfig); //Pruner(prunerConfig)
 	pruner.init();
 

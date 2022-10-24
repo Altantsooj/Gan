@@ -1,6 +1,10 @@
-import { CubeUtil, CubieCube, Mask, Move, MoveSeq } from './CubeLib';
+import { CubeUtil, CubieCube, Mask, Move, MoveSeq, type MaskT } from './CubeLib';
 import { CachedSolver } from './CachedSolver';
 import { getEvaluator } from './Evaluator';
+import { store } from '$lib/store';
+import type { Stage } from '$lib/components/stages';
+import { makePrunerConfigFromMask } from './Pruner';
+import { solverFactory, solverFactory2 } from './Solver';
 
 export type AnalyzerState = {
 	scramble: string;
@@ -229,8 +233,14 @@ export function analyze_roux_solve(cube: CubieCube, solve: MoveSeq) {
 	}
 }
 
+export function getSolverFromStageId(stageId: string) {
+	const stage: Stage = store.getState().stages.stageIdToStageMap[stageId];
+	const mask: MaskT = stage.mask;
+	const config = makePrunerConfigFromMask(stage.name, mask);
+	return solverFactory(config);
+}
 export function solve(solver_str: string, cube: CubieCube, config: SolverConfig) {
-	const solver = CachedSolver.get(solver_str);
+	const solver = CachedSolver.get(solver_str) || getSolverFromStageId(solver_str);
 	const { premoves, num_solution, upper_limit } = config;
 	const ev = getEvaluator(config.evaluator || 'sequential');
 	const solver_num_solution = num_solution < 10 ? 10 : num_solution;
@@ -244,7 +254,8 @@ export function solve(solver_str: string, cube: CubieCube, config: SolverConfig)
 		)
 		.flat();
 	const ret = solutions.sort((x, y) => x.score - y.score).slice(0, num_solution);
-	//console.log({solver_str, config, v, soln: ret[0].solution.toString()})
+	console.log(ret.length)
+	console.log({solver_str, config, soln: ret[0].solution.toString()})
 	return ret;
 }
 

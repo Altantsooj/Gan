@@ -1,5 +1,5 @@
 /* ignore file coverage */
-import { CubieCube, Move } from './CubeLib';
+import { CubieCube, Move, type MaskT } from './CubeLib';
 import { cartesianProduct } from './Math';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if ((globalThis as any).$RefreshReg$ === undefined) {
@@ -36,7 +36,7 @@ enum PrunerPiece {
 	I,
 	X
 } // Solved, Oriented, Ignore, Exclude
-const { S, I } = PrunerPiece;
+const { S, I, O } = PrunerPiece;
 
 export type PrunerDef = {
 	corner: PrunerPiece[];
@@ -269,6 +269,21 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 		name
 	};
 };
+
+export function makePrunerConfigFromMask(name: string, mask: MaskT) {
+	console.log(JSON.stringify(mask))
+	const tp = mask.tp ? mask.tp : new Array(6).fill(0);
+	const ret = prunerFactory({
+		name,
+		corner: mask.cp.map((p, i) => p === 1 ? S : (mask.co ? (mask.co[i] === 1 ? O : I) : I)),
+		edge: mask.ep.map((p, i) => p === 1 ? S : (mask.eo ? (mask.eo[i] === 1 ? O : I) : I)),
+		center: tp.map((p, i) => p === 1 ? S : I),
+		solved_states: [""],
+		moveset: htm_rwm,
+		max_depth: 5
+	});
+	return ret;
+}
 
 const fbdrPrunerConfigGen = (max_depth: number): PrunerConfig => {
 	const esize = Math.pow(24, 4);
