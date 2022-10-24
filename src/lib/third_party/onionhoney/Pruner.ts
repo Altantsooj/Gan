@@ -110,17 +110,36 @@ const rrwmu_b = [
 ];
 
 export function Pruner(config: PrunerConfig): PrunerT {
-	let dist: Uint8Array;
+	let dist: Uint8Array | undefined;
+	let table: { [x: number]: number } = {};
 	const { size, encode, solved_states, max_depth, moveset: moveset_str } = config;
 	const moveset = moveset_str.map((x) => Move.all[x]);
 	let initialized = false;
 	const level_states = [[...solved_states]];
+	function recordDist(coordinate: number, d: number) {
+		if (dist !== undefined) {
+			if (dist[coordinate] === 255) {
+				dist[coordinate] = d;
+				return true;
+			}
+		} else {
+			if (table[coordinate] === undefined) {
+				table[coordinate] = d;
+				return true;
+			}
+		}
+		return false;
+	}
 	function init() {
 		if (initialized) return;
 		initialized = true;
-		dist = new Uint8Array(size).fill(255);
+		try {
+			dist = new Uint8Array(size).fill(255);
+		} catch (invalidArrayLength) {
+			console.log('Use slow lookup for size ', size);
+		}
 		for (const state of solved_states) {
-			dist[encode(state)] = 0;
+			recordDist(encode(state), 0);
 		}
 		let frontier = [...solved_states];
 		let total_expanded = frontier.length;
@@ -131,8 +150,7 @@ export function Pruner(config: PrunerConfig): PrunerT {
 				for (const move of moveset) {
 					const newState = state.apply(move); // clone
 					const idx = encode(newState);
-					if (dist[idx] === 255) {
-						dist[idx] = i + 1;
+					if (recordDist(idx, i + 1)) {
 						new_frontier.push(newState);
 					}
 				}
@@ -152,9 +170,15 @@ export function Pruner(config: PrunerConfig): PrunerT {
 		}
 	}
 	function query(cube: CubieCube) {
-		const d = dist[encode(cube)];
-		if (d === 255) return max_depth + 1;
-		return d;
+		if (dist !== undefined) {
+			const d = dist[encode(cube)];
+			if (d === 255) return max_depth + 1;
+			return d;
+		} else {
+			const d = table[encode(cube)];
+			if (d !== undefined) return d;
+			return max_depth + 1;
+		}
 	}
 	function equal(cube1: CubieCube, cube2: CubieCube) {
 		return encode(cube1) === encode(cube2);
@@ -206,9 +230,7 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 		let eo = 0,
 			ep = 0,
 			co = 0,
-			cp = 0,
-			e,
-			c;
+			cp = 0;
 		// hold it right
 		cube = cube.apply(getUpFaceRotation(cube));
 		for (let i = 0; i < 12; i++) {
@@ -222,8 +244,7 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 					break;
 			}
 		}
-		// eslint-disable-next-line prefer-const
-		e = ep * Math.pow(2, eosize) + eo;
+		const e = ep * Math.pow(2, eosize) + eo;
 		for (let i = 0; i < 8; i++) {
 			switch (def.corner[cube.cp[i]]) {
 				case S:
@@ -235,8 +256,7 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 					break;
 			}
 		}
-		// eslint-disable-next-line prefer-const
-		c = cp * Math.pow(3, cosize) + co;
+		const c = cp * Math.pow(3, cosize) + co;
 		return e * csize + c;
 	}
 
