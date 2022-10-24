@@ -7,6 +7,20 @@ import {
 } from '$lib/third_party/onionhoney/Analyzer';
 import { CubieCube, FaceletCube, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 
+export function getUpFaceRotation(cube: CubieCube): string {
+	const rotations = ['', 'z2', 'x', "x'", 'z', "z'"];
+	const index = cube.tp.indexOf(0);
+	return rotations[index];
+}
+
+export function getUpFrontFaceRotation(cube: CubieCube): string {
+	const upRot = getUpFaceRotation(cube);
+	cube = cube.apply(upRot);
+	const rotations = ['', '', '', 'y2', "y'", 'y'];
+	const index = cube.tp.indexOf(2);
+	return upRot + ' ' + rotations[index];
+}
+
 export interface OptimizedStage {
 	orientation?: string;
 	stage: string;

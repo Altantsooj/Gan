@@ -1,4 +1,6 @@
 import {
+	getUpFaceRotation,
+	getUpFrontFaceRotation,
 	makeOptimizedData,
 	makeOptimizedRouxData,
 	movesToString,
@@ -536,4 +538,31 @@ describe('optimizer can find helpful shorter solutions', () => {
 		cmll: "R U R' U R U2 R' U R U R' F' R U R' U' R' F R2 U' R' ",
 		lse: "U M' U2 M U2 M U M' U' M' U2 M' U M2 U' M U2 M U2 M2 U2 "
 	});
+
+	function validateRotation(xr: string, yr: string, zr: string) {
+		it(`validates rotation ${xr} ${yr} ${zr}`, () => {
+			const rotated = new CubieCube().apply(xr).apply(yr).apply(zr);
+			const fixup = getUpFaceRotation(rotated);
+			const fixed = rotated.apply(fixup);
+			expect(fixed.tp[0]).to.equal(0);
+			const fixFully = getUpFrontFaceRotation(rotated);
+			const id = rotated.apply(fixFully);
+			expect(id.tp[0]).to.equal(0);
+			expect(id.tp[2]).to.equal(2);
+			expect(CubeUtil.is_cube_solved(id)).to.be.true;
+		});
+	}
+	function validateRotations() {
+		const xRot = ['', 'x', 'x2', "x'"];
+		const yRot = ['', 'y', 'y2', "y'"];
+		const zRot = ['', 'z', 'z2', "z'"];
+		for (const xr of xRot) {
+			for (const yr of yRot) {
+				for (const zr of zRot) {
+					validateRotation(xr, yr, zr);
+				}
+			}
+		}
+	}
+	validateRotations();
 });

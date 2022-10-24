@@ -1,4 +1,5 @@
 /* ignore file coverage */
+import { getUpFaceRotation } from '$lib/optimizer/optimizer';
 import { CubieCube, Mask, Move, type MaskT } from './CubeLib';
 import { cartesianProduct } from './Math';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -199,24 +200,17 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 	const cp_idx = def_to_idx(def.corner, false);
 	const c_idx = def_to_idx(def.corner, true);
 
-	const tosize = def.center.filter((x) => x === O).length;
-	const tpsize = def.center.filter((x) => x === S).length;
-	const tisize = def.center.filter((x) => x !== X).length;
-	const tsize = Math.pow(2, tosize) * Math.pow(tisize, tpsize);
-	const tp_idx = def_to_idx(def.center, false);
-
-	const size = esize * csize * tsize;
+	const size = esize * csize;
 
 	function encode(cube: CubieCube) {
 		let eo = 0,
 			ep = 0,
 			co = 0,
 			cp = 0,
-			to = 0,
-			tp = 0,
 			e,
-			c,
-			t;
+			c;
+		// hold it right
+		cube = cube.apply(getUpFaceRotation(cube));
 		for (let i = 0; i < 12; i++) {
 			switch (def.edge[cube.ep[i]]) {
 				case S:
@@ -243,19 +237,7 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 		}
 		// eslint-disable-next-line prefer-const
 		c = cp * Math.pow(3, cosize) + co;
-		for (let i = 0; i < 6; i++) {
-			switch (def.center[cube.tp[i]]) {
-				case S:
-					tp = Math.pow(tisize, tp_idx[cube.tp[i]]) + i;
-					break;
-				case O:
-					to = (to * 3 + cube.tp[i] / 2) | 0;
-					break;
-			}
-		}
-		// eslint-disable-next-line prefer-const
-		t = tp * Math.pow(3, tosize) + to;
-		return e * csize * tsize + c * tsize + t;
+		return e * csize + c;
 	}
 
 	const solved_states = def.solved_states.map((m) => new CubieCube().apply(m));
