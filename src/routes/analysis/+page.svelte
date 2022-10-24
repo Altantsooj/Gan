@@ -51,7 +51,6 @@
 		orientation?: string;
 		stage: string;
 		solution: MoveSeq;
-		setup: string;
 		score: number;
 	}[][];
 	let alternateSolution: SolutionDesc | undefined = undefined;
@@ -148,7 +147,7 @@
 				const moves = new MoveSeq(optimized[i][0].solution.moves);
 				quicker = spin + ' ' + moves;
 				algStr +=
-					`(${s.solution.length()}) vs (${spin.moves.length + moves.moves.length}) ` + quicker; // + ` //setup[${optimized[i][0].setup}]`;
+					`(${s.solution.length()}) vs (${spin.moves.length + moves.moves.length}) ` + quicker;
 			}
 			algStr += '\n';
 		});
