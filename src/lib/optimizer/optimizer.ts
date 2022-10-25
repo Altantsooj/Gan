@@ -59,13 +59,14 @@ export function makeOptimizedDataFromStages(scrambleString: string, rstages: Sol
 	for (let i = 0; i < rstages.length; ++i) {
 		const stage = rstages[i];
 		const config: SolverConfig = {
-			premoves: [ stage.view ? stage.view.toString() : '' ],
+			premoves: [stage.view ? stage.view.toString() : ''],
 			num_solution: 2,
-			upper_limit: 12
+			upper_limit: Math.min(11, stage.solution.length())
 		};
 		const ori = stage.orientation || '';
 		const spin = new MoveSeq(ori);
 		cube = cube.changeBasis(spin);
+		const startTimestamp = new Date().getTime();
 		optimized.push(
 			solve(stage.stageId || stage.stage, cube, config)
 				.map((sol) => ({
@@ -75,17 +76,19 @@ export function makeOptimizedDataFromStages(scrambleString: string, rstages: Sol
 				}))
 				.sort((x, y) => x.score - y.score)
 		);
+		const solveDoneTimestamp = new Date().getTime();
+		console.log({ solveTime: solveDoneTimestamp - startTimestamp });
 		const thisPhase = optimized.slice(-1)[0];
 		if (thisPhase.length) {
 			console.log(`New solver found ${thisPhase.length} options`);
-			console.log(stage.stage, ": ", stage.stageId);
-			console.log({s0: thisPhase[0]});
+			console.log(stage.stage, ': ', stage.stageId);
+			console.log(thisPhase);
 			const optcube = cube.apply(thisPhase[0].solution);
 			const v = visualize(optcube);
 			console.log(v);
 			if (stage.stageId) {
 				const mask = store.getState().stages.stageIdToStageMap[stage.stageId].mask;
-				console.log("Solved? ", CubeUtil.is_solved(optcube, mask));
+				console.log('Solved? ', CubeUtil.is_solved(optcube, mask));
 			}
 		}
 		if (stage.view) {

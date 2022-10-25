@@ -137,9 +137,9 @@ export function Pruner(config: PrunerConfig): PrunerT {
 		if (initialized) return;
 		initialized = true;
 		//try {
-			//dist = new Uint8Array(size).fill(255);
+		//dist = new Uint8Array(size).fill(255);
 		//} catch (invalidArrayLength) {
-			console.log('Use slow lookup for size ', size);
+		console.log('Use slow lookup for size ', size);
 		//}
 		for (const state of solved_states) {
 			recordDist(state, 0);
@@ -174,12 +174,12 @@ export function Pruner(config: PrunerConfig): PrunerT {
 	function query(cube: CubieCube) {
 		if (dist !== undefined) {
 			const d = dist[Number(encode(cube))];
-			if (d === 255) return max_depth + 1;
+			if (d === 255) return max_depth + 0.5;
 			return d;
 		} else {
 			const d = table[String(encode(cube))];
 			if (d !== undefined) return d;
-			return max_depth + 1;
+			return max_depth + 0.5;
 		}
 	}
 	function equal(cube1: CubieCube, cube2: CubieCube) {
@@ -246,7 +246,7 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 					break;
 			}
 		}
-		const e = ep * (2n ** BigInt(eosize)) + eo;
+		const e = ep * 2n ** BigInt(eosize) + eo;
 		for (let i = 0; i < 8; i++) {
 			switch (def.corner[cube.cp[i]]) {
 				case S:
@@ -258,7 +258,7 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 					break;
 			}
 		}
-		const c = cp * (3n ** BigInt(cosize)) + co;
+		const c = cp * 3n ** BigInt(cosize) + co;
 		return e * BigInt(csize) + c;
 	}
 
@@ -289,13 +289,7 @@ export function makePrunerConfigFromMask(name: string, mask: MaskT, priorMask?: 
 		max_depth: 5
 	};
 	if (priorMask) {
-		//prunerConfig.corner = prunerConfig.corner.map((c, i) => (priorMask.cp[i] === 1 ? I : c));
-		//prunerConfig.edge = prunerConfig.edge.map((c, i) => (priorMask.ep[i] === 1 ? I : c));
-		//prunerConfig.corner = prunerConfig.corner.map((c, i) => (Mask.fb_mask.cp[i] === 1 ? I : c));
-		//prunerConfig.edge = prunerConfig.edge.map((c, i) => (Mask.fb_mask.ep[i] === 1 ? I : c));
-		prunerConfig.moveset = [...rrwmu, ...prunerConfig.moveset];
-		//prunerConfig.moveset = htm_rwm;
-		//prunerConfig.max_depth = 8;
+		prunerConfig.moveset = [...rrwmu];
 	}
 	const ret = prunerFactory(prunerConfig);
 	return ret;

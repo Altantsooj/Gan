@@ -329,8 +329,8 @@ LLLFFFRRRBBB
 		const optimized = makeOptimizedData(scramble, breakdown);
 		expect(optimized.length).to.equal(6);
 		expect(optimized[0].length).to.equal(2);
-		expect(optimized[0][0].solution.toString()).to.equal("F' M' U M F B ");
-		expect(optimized[0][1].solution.toString()).to.equal("M' F' U M F B ");
+		expect(optimized[0][0].solution.toString()).to.equal("x D F' U R' U2 F ");
+		expect(optimized[0][1].solution.toString()).to.equal("x U' D' R' U R U D2 ");
 		expect(optimized[1].length).to.equal(2);
 		expect(optimized[1][0].solution.toString()).to.equal("R U2 R' U2 R' ");
 		expect(optimized[1][1].solution.toString()).to.equal("r U2 R' U2 r' ");
@@ -338,29 +338,25 @@ LLLFFFRRRBBB
 		expect(optimized[2][0].solution.toString()).to.equal("M' U r' U2 R U R' U' R ");
 		expect(optimized[2][1].solution.toString()).to.equal("U R' U r U2 R' M2 U' r ");
 		expect(optimized[3].length).to.equal(0);
-		//expect(optimized[3][0].solution.toString()).to.equal("U2 F' R U R ");
-		//expect(optimized[3][1].solution.toString()).to.equal("D' F2 B' U' ");
-		expect(optimized[4].length).to.equal(2);
+		//expect(optimized[3][0].solution.toString()).to.equal("");
+		//expect(optimized[3][1].solution.toString()).to.equal("");
+		expect(optimized[4].length).to.equal(1);
 		expect(optimized[4][0].solution.toString()).to.equal('U ');
-		expect(optimized[4][1].solution.toString()).to.equal("M' U M ");
 		expect(optimized[5].length).to.equal(2);
-		expect(optimized[5][0].solution.toString()).to.equal("U M2 U r' U2 M U2 r U M U' ");
-		expect(optimized[5][1].solution.toString()).to.equal("U M2 U' r U2 M U2 r' U' M U' ");
+		expect(optimized[5][0].solution.toString()).to.equal("U' M2 U r U2 M U2 r' U M U' ");
+		expect(optimized[5][1].solution.toString()).to.equal("U' M2 U' r' U2 M U2 r U' M U' ");
 	});
 
 	it('custom analyzer gets fb correct', () => {
 		setupSolutionsInStore();
 		const scramble = "R' U' R B' U L D' F' R L2' B' R2 F2 L2' B2' D2' B R2 U2 D2'";
-		const solution = "L' D' R L S' L S L' U' L' U B' U S U' B' F' R F R' R2 B F' U B' R2 B L F U F' U' F U F' U' L' S2 U S' U2 S' U S U' S U2 S U S2 U' S' U2 S U2 S2'";
-		const breakdown = analyzeSolve(
-			'0',
-			scramble,
-			solution
-		);
+		const solution =
+			"L' D' R L S' L S L' U' L' U B' U S U' B' F' R F R' R2 B F' U B' R2 B L F U F' U' F U F' U' L' S2 U S' U2 S' U S U' S U2 S U S2 U' S' U2 S U2 S2'";
+		const breakdown = analyzeSolve('0', scramble, solution);
 		//orientation: "y' ",
-		//fb: "x  U' F' D U M U M' U' B' U' B ", 
+		//fb: "x  U' F' D U M U M' U' B' U' B ",
 		const optimized = makeOptimizedData(scramble, breakdown);
-		expect(optimized.length).to.equal(2);
+		expect(optimized.length).to.equal(6);
 		expect(optimized[0].length).to.equal(2);
 		expect(optimized[0][0].solution.toString()).to.equal("x' U' R B' r U2 D F D2 ");
 		expect(optimized[0][1].solution.toString()).to.equal("x' U' B' r D R U2 F D2 ");

@@ -194,6 +194,11 @@ function Solver(config: SolverConfig): SolverT {
 				prune_count++;
 				return SState.CONTINUE;
 			} else {
+				/* reduces the total number of solutions found in OH's original code
+				if (Math.round(d) === Math.trunc(d)) {
+					max_depth = d + depth;
+				}
+				*/
 				return expand(cube, depth, solution);
 			}
 		}

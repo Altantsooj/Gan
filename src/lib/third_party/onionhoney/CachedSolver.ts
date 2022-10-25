@@ -1,3 +1,4 @@
+import { getSolverFromStageId } from './Analyzer';
 import { Pruner, type PrunerConfig, type PrunerT } from './Pruner';
 import {
 	FbdrSolver,
@@ -118,6 +119,9 @@ const CachedSolver = (function () {
 					break;
 				case 'eolr-b':
 					cache.set(s, EOLRSolver(0x11, 'barbie'));
+					break;
+				default:
+					cache.set(s, getSolverFromStageId(s));
 					break;
 			}
 		}
