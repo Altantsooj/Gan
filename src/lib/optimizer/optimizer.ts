@@ -61,7 +61,7 @@ export function makeOptimizedDataFromStages(scrambleString: string, rstages: Sol
 		const config: SolverConfig = {
 			premoves: [ stage.view ? stage.view.toString() : '' ],
 			num_solution: 2,
-			upper_limit: 9
+			upper_limit: 12
 		};
 		const ori = stage.orientation || '';
 		const spin = new MoveSeq(ori);

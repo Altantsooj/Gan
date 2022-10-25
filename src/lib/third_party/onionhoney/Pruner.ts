@@ -286,7 +286,7 @@ export function makePrunerConfigFromMask(name: string, mask: MaskT, priorMask?: 
 		center: tp.map((p, i) => (p === 1 ? S : I)),
 		solved_states: [''],
 		moveset: [...htm_rwm],
-		max_depth: 4
+		max_depth: 5
 	};
 	if (priorMask) {
 		//prunerConfig.corner = prunerConfig.corner.map((c, i) => (priorMask.cp[i] === 1 ? I : c));
