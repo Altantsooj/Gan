@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	/* app bar */
-	import type { TopAppBarComponentDev } from '@smui/top-app-bar';
+	import type TopAppBarComponentDev from '@smui/top-app-bar';
 	import TopAppBar, { Row, Section, AutoAdjust, Title } from '@smui/top-app-bar';
 	import IconButton from '@smui/icon-button';
 	import Avatar from '$lib/components/Avatar.svelte';
@@ -24,6 +25,7 @@
 		onSnapshot,
 		orderBy,
 		query,
+		setDoc,
 		where,
 		type Unsubscribe
 	} from 'firebase/firestore';
@@ -71,10 +73,10 @@
 	let unsubMethods: Promise<Unsubscribe> | undefined;
 	let unsubStages: Promise<Unsubscribe> | undefined;
 
-	$: if ($store.auth.signedIn && !unsubMethods) {
+	$: if (!unsubMethods) {
 		unsubMethods = watchAll('methods');
 	}
-	$: if ($store.auth.signedIn && !unsubStages) {
+	$: if (!unsubStages) {
 		unsubStages = watchAll('stages');
 	}
 
@@ -112,6 +114,11 @@
 									time: doc.data().time
 								})
 							);
+							if (!doc.data().solveId) {
+								console.log('solveId missing for ', doc.id);
+								const newData = { ...doc.data(), solveId: doc.id };
+								setDoc(doc.ref, newData);
+							}
 						}
 					});
 				},
@@ -152,11 +159,15 @@
 		unsubScrambles();
 		unsubScrambles = undefined;
 	}
+
+	$: solveId = $page.url.searchParams.get('solveId');
 </script>
 
 <svelte:window bind:innerWidth={width} />
 
-{#if loading || $store.auth.signedIn === undefined}
+{#if solveId && $page.url.pathname === '/embed'}
+	<slot />
+{:else if loading || $store.auth.signedIn === undefined}
 	<h2>Loading ...</h2>
 	<div style="display: none"><Pair /><Login />{(loading = false)}</div>
 {:else if !$store.auth.signedIn}

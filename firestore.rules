@@ -13,21 +13,22 @@ service cloud.firestore {
     match /methods/{method}/{document=**} {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.creator;
       allow write: if request.auth != null && request.auth.uid == request.resource.data.creator;
-      allow read: if request.auth != null;
+      allow read: if true;
     }
     
     match /stages/{stage}/{document=**} {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.creator;
       allow write: if request.auth != null && request.auth.uid == request.resource.data.creator;
-      allow read: if request.auth != null;
+      allow read: if true;
     }
 
     match /scrambles/{scramble}/solves/{solve} {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.creator && request.resource.data.scrambleId == scramble;
+      allow update: if request.auth != null && request.auth.uid == request.resource.data.creator && request.resource.data.scrambleId == scramble;
     }
 
     match /{path=**}/solves/{solve} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null || request.resource.data.solveId == solve;
     }
 
     match /users/{document=**} {

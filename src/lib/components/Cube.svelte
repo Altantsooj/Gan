@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import { store } from '$lib/store';
 
-	const twistyPlayer: TwistyPlayer = new TwistyPlayer();
+	let twistyPlayer: TwistyPlayer | undefined;
 	export let controlPanel = 'none';
 	export let scramble = '';
 	export let solve = '';
@@ -64,7 +64,8 @@
 				priorMask && priorMask.tp ? priorMask.tp : undefined
 			);
 
-		twistyPlayer.experimentalStickeringMaskOrbits = `${edges},${corners},${centers}`;
+		if (twistyPlayer)
+			twistyPlayer.experimentalStickeringMaskOrbits = `${edges},${corners},${centers}`;
 	}
 
 	async function setStickers(mask: MaskT, priorMask?: MaskT) {
@@ -99,10 +100,10 @@
 		setStickers(Mask.solved_mask);
 	}
 
-	$: if (scramble) {
+	$: if (scramble && twistyPlayer) {
 		twistyPlayer.experimentalSetupAlg = scramble;
 	}
-	$: if (solve) {
+	$: if (solve && twistyPlayer) {
 		twistyPlayer.alg = solve;
 	}
 
@@ -110,13 +111,13 @@
 	$: if (playHead !== playerPosition) {
 		const p = async () => {
 			console.log({ playHead });
-			twistyPlayer.pause();
+			twistyPlayer?.pause();
 			const timestampPromise = (async (): Promise<any> => {
-				const indexer = await twistyPlayer.experimentalModel.indexer.get();
+				const indexer = await twistyPlayer?.experimentalModel.indexer.get();
 				const offset = 250;
-				return (indexer.indexToMoveStartTimestamp(playHead) ?? -offset) + offset;
+				return (indexer?.indexToMoveStartTimestamp(playHead) ?? -offset) + offset;
 			})();
-			twistyPlayer.experimentalModel.timestampRequest.set(
+			twistyPlayer?.experimentalModel.timestampRequest.set(
 				await timestampPromise // TODO
 			);
 		};
@@ -124,6 +125,7 @@
 	}
 	onMount(async () => {
 		let contentElem = document.querySelector('#twisty-content');
+		twistyPlayer = new TwistyPlayer();
 		if (contentElem) {
 			twistyPlayer.background = 'none';
 			twistyPlayer.visualization = visualization;
