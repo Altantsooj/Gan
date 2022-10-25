@@ -239,7 +239,7 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 			switch (def.edge[cube.ep[i]]) {
 				case S:
 					eo = eo * 2n + BigInt(cube.eo[i]);
-					ep = ep + BigInt(eisize) ** BigInt(ep_idx[cube.ep[i]] * e_idx[i]);
+					ep = ep + BigInt(eisize) ** BigInt(ep_idx[cube.ep[i]]) * BigInt(e_idx[i]);
 					break;
 				case O:
 					eo = eo * 2n + BigInt(cube.eo[i]);
@@ -251,7 +251,7 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 			switch (def.corner[cube.cp[i]]) {
 				case S:
 					co = co * 3n + BigInt(cube.co[i]);
-					cp = cp + BigInt(cisize) ** BigInt(cp_idx[cube.cp[i]] * c_idx[i]);
+					cp = cp + BigInt(cisize) ** BigInt(cp_idx[cube.cp[i]]) * BigInt(c_idx[i]);
 					break;
 				case O:
 					co = co * 3n + BigInt(cube.co[i]);
@@ -285,7 +285,7 @@ export function makePrunerConfigFromMask(name: string, mask: MaskT, priorMask?: 
 		edge: mask.ep.map((p, i) => (p === 1 ? S : mask.eo ? (mask.eo[i] === 1 ? O : I) : I)),
 		center: tp.map((p, i) => (p === 1 ? S : I)),
 		solved_states: [''],
-		moveset: htm_rwm,
+		moveset: [...htm_rwm],
 		max_depth: 4
 	};
 	if (priorMask) {

@@ -347,4 +347,22 @@ LLLFFFRRRBBB
 		expect(optimized[5][0].solution.toString()).to.equal("U M2 U r' U2 M U2 r U M U' ");
 		expect(optimized[5][1].solution.toString()).to.equal("U M2 U' r U2 M U2 r' U' M U' ");
 	});
+
+	it('custom analyzer gets fb correct', () => {
+		setupSolutionsInStore();
+		const scramble = "R' U' R B' U L D' F' R L2' B' R2 F2 L2' B2' D2' B R2 U2 D2'";
+		const solution = "L' D' R L S' L S L' U' L' U B' U S U' B' F' R F R' R2 B F' U B' R2 B L F U F' U' F U F' U' L' S2 U S' U2 S' U S U' S U2 S U S2 U' S' U2 S U2 S2'";
+		const breakdown = analyzeSolve(
+			'0',
+			scramble,
+			solution
+		);
+		//orientation: "y' ",
+		//fb: "x  U' F' D U M U M' U' B' U' B ", 
+		const optimized = makeOptimizedData(scramble, breakdown);
+		expect(optimized.length).to.equal(2);
+		expect(optimized[0].length).to.equal(2);
+		expect(optimized[0][0].solution.toString()).to.equal("x' U' R B' r U2 D F D2 ");
+		expect(optimized[0][1].solution.toString()).to.equal("x' U' B' r D R U2 F D2 ");
+	});
 });

@@ -59,7 +59,7 @@ export function makeOptimizedDataFromStages(scrambleString: string, rstages: Sol
 	for (let i = 0; i < rstages.length; ++i) {
 		const stage = rstages[i];
 		const config: SolverConfig = {
-			premoves: [''],
+			premoves: [ stage.view ? stage.view.toString() : '' ],
 			num_solution: 2,
 			upper_limit: 9
 		};
