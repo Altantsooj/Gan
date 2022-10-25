@@ -13,7 +13,7 @@ if ((globalThis as any).$RefreshReg$ === undefined) {
 
 export type PrunerConfig = {
 	size: number;
-	encode: (cube: CubieCube) => number;
+	encode: (cube: CubieCube) => bigint;
 	solved_states: CubieCube[];
 	max_depth: number;
 	moveset: string[];
@@ -25,7 +25,7 @@ export type PrunerT = {
 	init: () => void;
 	query: (c: CubieCube) => number;
 	equal: (c1: CubieCube, c2: CubieCube) => boolean;
-	encode: (c: CubieCube) => number;
+	encode: (c: CubieCube) => bigint;
 	moveset: Move[];
 	max_depth: number;
 	size: number;
@@ -111,20 +111,23 @@ const rrwmu_b = [
 
 export function Pruner(config: PrunerConfig): PrunerT {
 	let dist: Uint8Array | undefined;
-	let table: { [x: number]: number } = {};
+	let table: { [x: string]: number } = {};
 	const { size, encode, solved_states, max_depth, moveset: moveset_str } = config;
 	const moveset = moveset_str.map((x) => Move.all[x]);
 	let initialized = false;
 	const level_states = [[...solved_states]];
-	function recordDist(coordinate: number, d: number) {
+	function recordDist(cube: CubieCube, d: number) {
+		const coordinate = encode(cube);
 		if (dist !== undefined) {
-			if (dist[coordinate] === 255) {
-				dist[coordinate] = d;
+			const index = Number(coordinate);
+			if (dist[index] === 255) {
+				dist[index] = d;
 				return true;
 			}
 		} else {
-			if (table[coordinate] === undefined) {
-				table[coordinate] = d;
+			const index = String(coordinate);
+			if (table[index] === undefined) {
+				table[index] = d;
 				return true;
 			}
 		}
@@ -133,13 +136,13 @@ export function Pruner(config: PrunerConfig): PrunerT {
 	function init() {
 		if (initialized) return;
 		initialized = true;
-		try {
-			dist = new Uint8Array(size).fill(255);
-		} catch (invalidArrayLength) {
+		//try {
+			//dist = new Uint8Array(size).fill(255);
+		//} catch (invalidArrayLength) {
 			console.log('Use slow lookup for size ', size);
-		}
+		//}
 		for (const state of solved_states) {
-			recordDist(encode(state), 0);
+			recordDist(state, 0);
 		}
 		let frontier = [...solved_states];
 		let total_expanded = frontier.length;
@@ -149,8 +152,7 @@ export function Pruner(config: PrunerConfig): PrunerT {
 			for (const state of frontier) {
 				for (const move of moveset) {
 					const newState = state.apply(move); // clone
-					const idx = encode(newState);
-					if (recordDist(idx, i + 1)) {
+					if (recordDist(newState, i + 1)) {
 						new_frontier.push(newState);
 					}
 				}
@@ -171,11 +173,11 @@ export function Pruner(config: PrunerConfig): PrunerT {
 	}
 	function query(cube: CubieCube) {
 		if (dist !== undefined) {
-			const d = dist[encode(cube)];
+			const d = dist[Number(encode(cube))];
 			if (d === 255) return max_depth + 1;
 			return d;
 		} else {
-			const d = table[encode(cube)];
+			const d = table[String(encode(cube))];
 			if (d !== undefined) return d;
 			return max_depth + 1;
 		}
@@ -227,37 +229,37 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 	const size = esize * csize;
 
 	function encode(cube: CubieCube) {
-		let eo = 0,
-			ep = 0,
-			co = 0,
-			cp = 0;
+		let eo = BigInt(0),
+			ep = BigInt(0),
+			co = BigInt(0),
+			cp = BigInt(0);
 		// hold it right
 		cube = cube.apply(getUpFaceRotation(cube));
 		for (let i = 0; i < 12; i++) {
 			switch (def.edge[cube.ep[i]]) {
 				case S:
-					eo = eo * 2 + cube.eo[i];
-					ep = ep + Math.pow(eisize, ep_idx[cube.ep[i]]) * e_idx[i];
+					eo = eo * 2n + BigInt(cube.eo[i]);
+					ep = ep + BigInt(eisize) ** BigInt(ep_idx[cube.ep[i]] * e_idx[i]);
 					break;
 				case O:
-					eo = eo * 2 + cube.eo[i];
+					eo = eo * 2n + BigInt(cube.eo[i]);
 					break;
 			}
 		}
-		const e = ep * Math.pow(2, eosize) + eo;
+		const e = ep * (2n ** BigInt(eosize)) + eo;
 		for (let i = 0; i < 8; i++) {
 			switch (def.corner[cube.cp[i]]) {
 				case S:
-					co = co * 3 + cube.co[i];
-					cp = cp + Math.pow(cisize, cp_idx[cube.cp[i]]) * c_idx[i];
+					co = co * 3n + BigInt(cube.co[i]);
+					cp = cp + BigInt(cisize) ** BigInt(cp_idx[cube.cp[i]] * c_idx[i]);
 					break;
 				case O:
-					co = co * 3 + cube.co[i];
+					co = co * 3n + BigInt(cube.co[i]);
 					break;
 			}
 		}
-		const c = cp * Math.pow(3, cosize) + co;
-		return e * csize + c;
+		const c = cp * (3n ** BigInt(cosize)) + co;
+		return e * BigInt(csize) + c;
 	}
 
 	const solved_states = def.solved_states.map((m) => new CubieCube().apply(m));
@@ -284,7 +286,7 @@ export function makePrunerConfigFromMask(name: string, mask: MaskT, priorMask?: 
 		center: tp.map((p, i) => (p === 1 ? S : I)),
 		solved_states: [''],
 		moveset: htm_rwm,
-		max_depth: 5
+		max_depth: 4
 	};
 	if (priorMask) {
 		//prunerConfig.corner = prunerConfig.corner.map((c, i) => (priorMask.cp[i] === 1 ? I : c));
@@ -336,7 +338,7 @@ const fbdrPrunerConfigGen = (max_depth: number): PrunerConfig => {
 			}
 		}
 		const enc_e = e1 * (24 * 24 * 24) + e2 * (24 * 24) + e3 * 24 + e4;
-		return enc_c + 24 * 24 * enc_e;
+		return BigInt(enc_c + 24 * 24 * enc_e);
 	}
 
 	const moves = [[]]; //, Move.parse("L R'"), Move.parse("L' R"), Move.parse("L2 R2")]
@@ -400,7 +402,7 @@ const fbPrunerConfigGen = (max_depth: number): PrunerConfig => {
 			}
 		}
 		const enc_e = e1 * (24 * 24) + e2 * 24 + e3;
-		return enc_e * (24 * 24) + enc_c;
+		return BigInt(enc_e * (24 * 24) + enc_c);
 	}
 
 	const moves = [[]]; //, Move.parse("L R'"), Move.parse("L' R"), Move.parse("L2 R2")]
@@ -433,7 +435,7 @@ const ssPrunerConfig = (is_front: boolean) => {
 			if (cube.ep[i] === e1) v[1] = i * 2 + cube.eo[i];
 			else if (cube.ep[i] === e2) v[2] = i * 2 + cube.eo[i];
 		}
-		return v[0] + v[1] * 24 + v[2] * 24 * 24;
+		return BigInt(v[0] + v[1] * 24 + v[2] * 24 * 24);
 	}
 
 	const moves = [[]];
@@ -464,7 +466,7 @@ const ssDpPrunerConfig = (is_front: boolean) => {
 		for (let i = 0; i < 12; i++) {
 			if (cube.ep[i] === e1) v1 = i * 2 + cube.eo[i];
 		}
-		return v0 + v1 * 24;
+		return BigInt(v0 + v1 * 24);
 	}
 
 	const moves = ['', 'R', 'R2', "R'"];
@@ -518,7 +520,7 @@ const sbPrunerConfig = (function () {
 			}
 		}
 		const enc_e = e1 * (24 * 24) + e2 * 24 + e3;
-		return enc_e * (24 * 24) + enc_c;
+		return BigInt(enc_e * (24 * 24) + enc_c);
 	}
 
 	const moves = [[]];
@@ -594,7 +596,7 @@ const lpSbSbPrunerConfigGen = (lp_front: boolean, max_depth: number): PrunerConf
 			}
 		}
 		const enc_e = e1 * (24 * 24) + e2 * 24 + e3;
-		return enc_e * (24 * 24) + enc_c;
+		return BigInt(enc_e * (24 * 24) + enc_c);
 	}
 
 	const moves = [[]]; //, Move.parse("L R'"), Move.parse("L' R"), Move.parse("L2 R2")]
@@ -647,7 +649,7 @@ const lpSbDiagPrunerConfigGen = (lp_front: boolean, max_depth: number): PrunerCo
 			}
 		}
 		const enc_e = e1 * (24 * 24) + e2 * 24 + e3;
-		return enc_e * (24 * 24) + enc_c;
+		return BigInt(enc_e * (24 * 24) + enc_c);
 	}
 	function encode_b(cube: CubieCube) {
 		let c1 = 0,
@@ -680,7 +682,7 @@ const lpSbDiagPrunerConfigGen = (lp_front: boolean, max_depth: number): PrunerCo
 			}
 		}
 		const enc_e = e1 * (24 * 24) + e2 * 24 + e3;
-		return enc_e * (24 * 24) + enc_c;
+		return BigInt(enc_e * (24 * 24) + enc_c);
 	}
 
 	const moves = [[]]; //, Move.parse("L R'"), Move.parse("L' R"), Move.parse("L2 R2")]
@@ -719,7 +721,7 @@ const fsPrunerConfig = (is_front: boolean) => {
 			if (cube.ep[i] === e1) v1 = i * 2 + cube.eo[i];
 			else if (cube.ep[i] === e2) v2 = i * 2 + cube.eo[i];
 		}
-		return v0 + v1 * 24 + v2 * 24 * 24;
+		return BigInt(v0 + v1 * 24 + v2 * 24 * 24);
 	}
 
 	const moves = [[]];
@@ -789,7 +791,7 @@ const fbssPrunerConfigsManual = (is_front: boolean, max_depth?: number): PrunerC
 			}
 		}
 		const enc_e = e1 * (24 * 24) + e2 * 24 + e3;
-		return enc_c + csize * enc_e;
+		return BigInt(enc_c + csize * enc_e);
 	}
 
 	function encode_back(cube: CubieCube) {
@@ -827,7 +829,7 @@ const fbssPrunerConfigsManual = (is_front: boolean, max_depth?: number): PrunerC
 			}
 		}
 		const enc_e = e1 * (24 * 24) + e2 * 24 + e3;
-		return enc_c + csize * enc_e;
+		return BigInt(enc_c + csize * enc_e);
 	}
 
 	const moves = [[]]; //, Move.parse("L R'"), Move.parse("L' R"), Move.parse("L2 R2")]
@@ -889,7 +891,7 @@ const lsePrunerConfig: PrunerConfig = (function () {
 		for (let i = 0; i < 6; i++) {
 			edge_enc = edge_enc * 12 + enc[i];
 		}
-		return edge_enc * 4 * 4 + cube.tp[0] * 4 + cube.cp[0]; // center[0] and cp[0] must be (0-3)
+		return BigInt(edge_enc * 4 * 4 + cube.tp[0] * 4 + cube.cp[0]); // center[0] and cp[0] must be (0-3)
 	}
 
 	const moves = [Move.all['id']];
@@ -926,7 +928,7 @@ function eolrPrunerConfig(center_flag: number, barbie_mode?: string): PrunerConf
 			}
 		}
 		// make no distinction between centers M2 apart
-		return (eo * 36 + ep) * 4 * 2 + ~~(cube.tp[0] / 2) * 4 + cube.cp[0]; // center[0] and cp[0] must be (0-3)
+		return BigInt((eo * 36 + ep) * 4 * 2 + ~~(cube.tp[0] / 2) * 4 + cube.cp[0]); // center[0] and cp[0] must be (0-3)
 	}
 
 	const moves_ac = cartesianProduct(["U'", 'U'], ['M2'], ['', 'U', "U'", 'U2']).map((x) =>

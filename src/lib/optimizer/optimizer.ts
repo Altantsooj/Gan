@@ -5,7 +5,8 @@ import {
 	type SolutionDesc,
 	type SolverConfig
 } from '$lib/third_party/onionhoney/Analyzer';
-import { CubieCube, FaceletCube, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
+import { CubeUtil, CubieCube, FaceletCube, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
+import { store } from '$lib/store';
 
 export function getUpFaceRotation(cube: CubieCube): string {
 	const rotations = ['', 'z2', 'x', "x'", 'z', "z'"];
@@ -60,7 +61,7 @@ export function makeOptimizedDataFromStages(scrambleString: string, rstages: Sol
 		const config: SolverConfig = {
 			premoves: [''],
 			num_solution: 2,
-			upper_limit: 12
+			upper_limit: 9
 		};
 		const ori = stage.orientation || '';
 		const spin = new MoveSeq(ori);
@@ -74,14 +75,23 @@ export function makeOptimizedDataFromStages(scrambleString: string, rstages: Sol
 				}))
 				.sort((x, y) => x.score - y.score)
 		);
+		const thisPhase = optimized.slice(-1)[0];
+		if (thisPhase.length) {
+			console.log(`New solver found ${thisPhase.length} options`);
+			console.log(stage.stage, ": ", stage.stageId);
+			console.log({s0: thisPhase[0]});
+			const optcube = cube.apply(thisPhase[0].solution);
+			const v = visualize(optcube);
+			console.log(v);
+			if (stage.stageId) {
+				const mask = store.getState().stages.stageIdToStageMap[stage.stageId].mask;
+				console.log("Solved? ", CubeUtil.is_solved(optcube, mask));
+			}
+		}
 		if (stage.view) {
 			cube = cube.apply(stage.view!.inv());
 		}
 		cube = cube.apply(stage.rotatedSolution);
-		if (i === 0) {
-			const v = visualize(cube);
-			console.log(v);
-		}
 	}
 
 	return optimized;
