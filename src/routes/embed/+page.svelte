@@ -13,6 +13,9 @@
 	} from 'firebase/firestore';
 	import Solve from '$lib/components/Solve.svelte';
 
+	export const ssr = false;
+	export const prerender = false;
+
 	$: solveId = $page.url.searchParams.get('solveId') || undefined;
 	$: methodId = $page.url.searchParams.get('methodId') || undefined;
 
