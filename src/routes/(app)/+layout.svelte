@@ -159,7 +159,6 @@
 		unsubScrambles();
 		unsubScrambles = undefined;
 	}
-
 </script>
 
 <svelte:window bind:innerWidth={width} />
