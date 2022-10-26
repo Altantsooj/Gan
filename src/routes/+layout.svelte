@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 	/* app bar */
 	import type TopAppBarComponentDev from '@smui/top-app-bar';
 	import TopAppBar, { Row, Section, AutoAdjust, Title } from '@smui/top-app-bar';
@@ -159,15 +158,11 @@
 		unsubScrambles();
 		unsubScrambles = undefined;
 	}
-
-	$: solveId = $page.url.searchParams.get('solveId');
 </script>
 
 <svelte:window bind:innerWidth={width} />
 
-{#if solveId && $page.url.pathname === '/embed'}
-	<slot />
-{:else if loading || $store.auth.signedIn === undefined}
+{#if loading || $store.auth.signedIn === undefined}
 	<h2>Loading ...</h2>
 	<div style="display: none"><Pair /><Login />{(loading = false)}</div>
 {:else if !$store.auth.signedIn}
