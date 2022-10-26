@@ -15,12 +15,7 @@ const config = {
 			assets: 'build',
 			fallback: null,
 			precompress: false
-		}),
-
-		prerender: {
-			// This can be false if you're using a fallback (i.e. SPA mode)
-			default: true
-		}
+		})
 	}
 };
 

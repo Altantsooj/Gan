@@ -34,7 +34,6 @@
 		"@smui/top-app-bar": "^7.0.0-beta.0",
 		"@sveltejs/adapter-auto": "next",
 		"@sveltejs/adapter-static": "^1.0.0-next.39",
-		"@sveltejs/kit": "next",
 		"@types/chai": "^4.3.3",
 		"@types/d3-scale": "^4.0.2",
 		"@types/mocha": "^9.1.1",
@@ -64,6 +63,7 @@
 	"type": "module",
 	"dependencies": {
 		"@reduxjs/toolkit": "^1.8.5",
+		"@sveltejs/kit": "^1.0.0-next.525",
 		"@web/test-runner-playwright": "^0.8.10",
 		"cubing": "^0.31.0",
 		"d3-scale": "^4.0.2",
