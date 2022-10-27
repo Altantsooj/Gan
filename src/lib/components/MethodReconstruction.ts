@@ -7,8 +7,23 @@ import {
 	type SolutionDesc
 } from '$lib/third_party/onionhoney/Analyzer';
 import { CubeUtil, CubieCube, Move, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
+import type { MethodsState } from './methods';
+import type { StagesState } from './stages';
 
 export function analyzeSolve(method: string, scrambleString: string, solutionString: string) {
+	const state = store.getState();
+	const methods = state.methods;
+	const stages = state.stages;
+	return analyzeSolve2(method, scrambleString, solutionString, methods, stages);
+}
+
+export function analyzeSolve2(
+	method: string,
+	scrambleString: string,
+	solutionString: string,
+	methods: MethodsState,
+	stages: StagesState
+) {
 	const scramble = new MoveSeq(scrambleString);
 	const solution = new MoveSeq(solutionString);
 	const scrambledCube = new CubieCube().apply(scramble);
@@ -20,7 +35,7 @@ export function analyzeSolve(method: string, scrambleString: string, solutionStr
 		throw e;
 	}
 	const ret = [];
-	const state = store.getState();
+	const state = { methods, stages };
 
 	if (!state.methods.methodToStageMap[method]) {
 		const e = `method ${method} not found in custom methods`;

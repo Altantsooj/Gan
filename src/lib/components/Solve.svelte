@@ -1,15 +1,36 @@
 <script lang="ts">
 	import { store } from '$lib/store';
-	import { goto } from '$app/navigation';
-	import Button, { Label } from '@smui/button';
 	import Cube from '$lib/components/Cube.svelte';
 	import BarChart from '$lib/components/BarChart.svelte';
 	import IconButton from '@smui/icon-button';
 	import { Item, Text } from '@smui/list';
 	import { get_roux_stages, type SolutionDesc } from '$lib/third_party/onionhoney/Analyzer';
 	import { MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
-	import { makeOptimizedData } from '$lib/optimizer/optimizer';
 	import { analyzeSolve } from '$lib/components/MethodReconstruction';
+	import { onMount } from 'svelte';
+	import OptimizerWorker from '$lib/OptimizerWorker?worker';
+
+	const optimizer = new OptimizerWorker();
+	onMount(async () => {
+		optimizer.onmessage = onOptimizerResult;
+	});
+
+	function onOptimizerResult(data: any) {
+		console.log('Incoming!', data);
+		optimized = data.data as {
+			orientation?: string;
+			stage: string;
+			solution: MoveSeq;
+			score: number;
+		}[][];
+		for (let i = 0; i < optimized.length; ++i) {
+			for (let j = 0; j < optimized[i].length; ++j) {
+				const moveString = optimized[i][j].solution.moves.map((x) => x.name).join(' ');
+				console.log(`MOVES for ${optimized[i][j].stage}: ${moveString}`);
+				optimized[i][j].solution = new MoveSeq(moveString);
+			}
+		}
+	}
 
 	function toArray(any: ArrayLike<unknown> | Iterable<unknown>) {
 		if (any) return Array.from(any);
@@ -47,12 +68,24 @@
 		i === 0 ? edgeFrom('scrambled', s.stage) : edgeFrom(stages[i - 1].stage, s.stage)
 	);
 	$: cubeAlg = makeText(stages);
-	$: optimized = makeOptimizedData(scrambleString, stages) as {
+	$: optimized = [] as {
 		orientation?: string;
 		stage: string;
 		solution: MoveSeq;
 		score: number;
 	}[][];
+	$: if (scrambleString && solutionString && methodId) {
+		const methods = $store.methods;
+		const stages = $store.stages;
+		optimizer.postMessage({
+			type: 'optimize',
+			scrambleString,
+			solutionString,
+			methodId,
+			methods,
+			stages
+		});
+	}
 	let alternateSolution: SolutionDesc | undefined = undefined;
 
 	function translate(key: string) {
