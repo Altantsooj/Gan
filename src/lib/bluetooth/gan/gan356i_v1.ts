@@ -162,9 +162,8 @@ export class GANCube {
 				this.lastInterval = clockTime - this.lastClockTime;
 				this.lastClockTime = clockTime;
 				callback(arr[i]);
-				if (!this.trackingRotation && this.lastInterval < 40) {
+				if (!this.trackingRotation && this.lastInterval < 80) {
 					// hack in rotation moves based on timestamps
-					console.log({ last: this.lastInterval });
 					callback(arr[i] + 0x80);
 				}
 			}
@@ -190,7 +189,6 @@ export class GANCube {
 
 	public unwatchMoves() {
 		this.watchingMoves = false;
-		console.log('no longer watching moves');
 	}
 
 	public colorToFaceMove(originalMove: number, stateData: KStateData) {

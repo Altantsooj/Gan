@@ -72,7 +72,6 @@
 		if ($store.auth.uid) {
 			let parentStageId: string | undefined = undefined;
 			if (parentStageName !== 'scrambled') {
-				console.log({ parentStageName, lookup: getStageByName(parentStageName) });
 				parentStageId = getStageByName(parentStageName)[0];
 			}
 			const stageId = getStageByName(stageName)[0];

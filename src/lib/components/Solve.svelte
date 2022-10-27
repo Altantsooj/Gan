@@ -37,7 +37,6 @@
 
 	function getStages(scramble: string, solution: string) {
 		if (methodId) {
-			console.log('Get stages, via method: ', methodId);
 			return analyzeSolve(methodId, scramble, solution);
 		}
 		return get_roux_stages(scramble, solution);
@@ -55,7 +54,6 @@
 		score: number;
 	}[][];
 	let alternateSolution: SolutionDesc | undefined = undefined;
-	$: console.log({ stages, optimized });
 
 	function translate(key: string) {
 		return translation[key] || key;
@@ -102,8 +100,6 @@
 			solveData.push(data);
 			startTimeOffset = endOffset;
 		});
-		console.log({ stages, solveData });
-		//console.log(JSON.stringify(stages));
 	}
 	$: if (solve) {
 		makeDataTable(displayMode);
@@ -116,7 +112,6 @@
 	$: yTicks = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50].slice(0, numTicks + 2);
 	$: if (yTicks) {
 		let tmaxY = solveData.map((e) => e.yValue).sort((a, b) => Number(a) - Number(b));
-		console.log({ yTicks, maxY, numTicks, tmaxY });
 	}
 	$: heading = headings[displayMode];
 	$: axisLabel = yAxisLabels[displayMode];
@@ -194,10 +189,8 @@ validateUserSolution({
 		alternateScramble = scrambleString;
 		cubeSS = scrambleString;
 		cubeAlg = makeText(stages);
-		console.log('SHOW: ', stageSelected, ' scramble offset ', startOffset);
 		stages.forEach((s, i) => {
 			if (s.stage === stageSelected || edges[i] === stageSelected) {
-				console.log('SHOW POSITION: ', startOffset, ' for ', stageSelected);
 				playHead = startOffset;
 				if (s.stageId) {
 					stickering = i > 0 ? stages[i - 1].stageId || '' : 'scrambled';
@@ -240,7 +233,6 @@ validateUserSolution({
 		const spin = new MoveSeq(alternateSolution?.orientation || '');
 		cubeAlg = spin + ' ' + alternateSolution?.solution;
 		playHead = 0;
-		console.log({ cubeSS, cubeAlg, playHead });
 	}
 	let playHead = 0;
 	let stickering = '';

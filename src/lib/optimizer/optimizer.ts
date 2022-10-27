@@ -105,17 +105,9 @@ export function makeOptimizedRouxData(
 ): OptimizedStage[][] {
 	const optimized = [];
 	if (rstages && rstages[0] && rstages[0].stage === 'fb') {
-		console.log({
-			stage: rstages[0].stage,
-			orientation: rstages[0].orientation,
-			solution: rstages[0].solution.moves.map((x) => x.name).join(' ')
-		});
-
 		let cube = new CubieCube().apply(scrambleString);
-		console.log(scrambleString);
 		let faceletCube = FaceletCube.from_cubie(cube);
 		let visual = FaceletCube.to_unfolded_cube_str(faceletCube);
-		console.log(visual);
 		const ori = rstages[0].orientation || '';
 		const config: SolverConfig = {
 			premoves: ['', 'x', 'x2', "x'"],
@@ -137,7 +129,6 @@ export function makeOptimizedRouxData(
 				.sort((x, y) => x.score - y.score)
 		);
 		const quicker = optimized[0][0].solution.moves.map((x) => x.name).join(' ');
-		console.log({ optimized, quicker });
 		//cube = cube.apply(new MoveSeq(ori));
 		cube = cube.apply(optimized[0][0].solution.moves);
 		faceletCube = FaceletCube.from_cubie(cube);

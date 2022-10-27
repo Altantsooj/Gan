@@ -73,7 +73,6 @@
 	}
 
 	$: if (stickering) {
-		console.log('RESET STICKERING to: ', stickering);
 		const stageToMask: { [key: string]: MaskT } = {};
 		stageToMask['fb'] = Mask.fb_mask;
 		stageToMask['ss'] = Mask.sb_mask;
@@ -88,7 +87,6 @@
 			setStickers(stageToMask[stickering], stageToMask['pre_' + stickering]);
 		} else if (stickering.indexOf('|') !== -1) {
 			const keys = stickering.split('|');
-			console.log({ keys });
 			const preMask = $store.stages.stageIdToStageMap[keys[0]]?.mask;
 			const mask = $store.stages.stageIdToStageMap[keys[1]].mask;
 			setStickers(mask, preMask);
@@ -96,7 +94,6 @@
 			setStickers(Mask.solved_mask);
 		}
 	} else {
-		console.log('CLEAR STICKERS');
 		setStickers(Mask.solved_mask);
 	}
 
@@ -110,7 +107,6 @@
 	let playerPosition = -1;
 	$: if (playHead !== playerPosition) {
 		const p = async () => {
-			console.log({ playHead });
 			twistyPlayer?.pause();
 			const timestampPromise = (async (): Promise<any> => {
 				const indexer = await twistyPlayer?.experimentalModel.indexer.get();

@@ -74,7 +74,6 @@
 	let solution: { move: string; timestamp: number }[] = [];
 
 	async function addMove(model: any, move: string) {
-		console.log({ move });
 		alg = experimentalAppendMove(alg, new Move(move), {
 			sameDirection: true,
 			wideMoves333: true,
@@ -159,7 +158,6 @@
 				const ksNew = kp.startState();
 				let spin = 0;
 				async function orientationCallback(q: Quaternion) {
-					//console.log({ q });
 					const orbit =
 						await twistyPlayer.experimentalModel.twistySceneModel.orbitCoordinates.get();
 					const lat = Math.PI / 8; //(90 - orbit.latitude) / 180 * Math.PI;
@@ -178,7 +176,6 @@
 						...orbit,
 						distance: 6 + spin / 100 //orbit.distance
 					};
-					//console.log(ori)
 					twistyPlayer.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(ori);
 					const obj3d = await twistyPlayer.experimentalCurrentThreeJSPuzzleObject();
 					obj3d.setRotationFromQuaternion(q.clone());

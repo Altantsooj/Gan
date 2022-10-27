@@ -10,7 +10,6 @@
 	const methodId = $store.preferences.solutionMethodId || undefined;
 
 	function next() {
-		console.log('navigate to ', sourcePage);
 		goto('/' + sourcePage);
 	}
 	let displayMode = sourcePage !== 'trending_down' ? 'times' : 'moves';

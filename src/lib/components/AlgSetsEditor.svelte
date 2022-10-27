@@ -40,7 +40,6 @@
 	function edgeChanged(edge: EdgeDef) {
 		return (e: CustomEvent) => {
 			const target = e.target as HTMLInputElement;
-			console.log(target.value);
 			if ($store.auth.uid) {
 				dispatch(
 					'methods',

@@ -386,9 +386,8 @@ export class GANCubeV2 {
 				const offset = numMoves - 1 - i;
 				const moveCode = this.extractBits(decryptedMoves, 12 + offset * 5, 5);
 				const timing = this.extractBits(decryptedMoves, 12 + 7 * 5 + 16 * offset, 16);
-				console.log({ moveCode, timestamp: timing, clock_timing: clockTime - this.lastMoveTime });
 				callback(moveCode);
-				if (timing < 30) {
+				if (timing < 80) {
 					// hack in a rotation move so that we get a slice.
 					callback(moveCode + 12);
 				}

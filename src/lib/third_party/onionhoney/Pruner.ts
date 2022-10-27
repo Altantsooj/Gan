@@ -277,7 +277,6 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 };
 
 export function makePrunerConfigFromMask(name: string, mask: MaskT, allowedMoves?: string[]) {
-	console.log(JSON.stringify(mask));
 	const tp = mask.tp ? mask.tp : new Array(6).fill(0);
 	const prunerConfig = {
 		name,
