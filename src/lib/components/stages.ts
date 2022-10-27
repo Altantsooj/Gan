@@ -28,6 +28,7 @@ export const use_orientations = createAction<{ id: string; orientation_spec: str
 	'use_orientations'
 );
 export const set_free_face = createAction<{ id: string; free_face: string }>('set_free_face');
+export const set_frozen_face = createAction<{ id: string; frozen_face: string }>('set_frozen_face');
 export const delete_stage = createAction<string>('delete_stage');
 export const set_state = createAction<{
 	id: string;
@@ -60,6 +61,9 @@ export const stages = createReducer(initialState, (r) => {
 	});
 	r.addCase(set_free_face, (state, { payload }) => {
 		state.stageIdToStageMap[payload.id].free_face = payload.free_face;
+	});
+	r.addCase(set_frozen_face, (state, { payload }) => {
+		state.stageIdToStageMap[payload.id].frozen_face = payload.frozen_face;
 	});
 	r.addCase(delete_stage, (state, { payload }) => {
 		delete state.stageIdToStageMap[payload];

@@ -49,7 +49,7 @@ export type PrunerDef = {
 	name: string;
 };
 
-const htm_rwm = [
+export const htm_rwm = [
 	'U',
 	'U2',
 	"U'",
@@ -72,7 +72,7 @@ const htm_rwm = [
 	"B'",
 	'B2'
 ];
-const rrwmu = ['U', "U'", 'U2', 'R', "R'", 'R2', 'r', "r'", 'r2', "M'", 'M', 'M2'];
+export const rrwmu = ['U', "U'", 'U2', 'R', "R'", 'R2', 'r', "r'", 'r2', "M'", 'M', 'M2'];
 const rrwmu_m_first = ['U', "U'", 'U2', 'R', "R'", 'R2', "M'", 'M', 'M2', 'r', "r'", 'r2'];
 const rrwmu_f = [
 	'U',
@@ -276,7 +276,7 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 	};
 };
 
-export function makePrunerConfigFromMask(name: string, mask: MaskT, priorMask?: MaskT) {
+export function makePrunerConfigFromMask(name: string, mask: MaskT, allowedMoves?: string[]) {
 	console.log(JSON.stringify(mask));
 	const tp = mask.tp ? mask.tp : new Array(6).fill(0);
 	const prunerConfig = {
@@ -288,9 +288,10 @@ export function makePrunerConfigFromMask(name: string, mask: MaskT, priorMask?: 
 		moveset: [...htm_rwm],
 		max_depth: 5
 	};
-	if (priorMask) {
-		prunerConfig.moveset = [...rrwmu];
+	if (allowedMoves) {
+		prunerConfig.moveset = allowedMoves;
 	}
+	prunerConfig.max_depth = Math.floor(Math.log(20000000) / Math.log(prunerConfig.moveset.length));
 	const ret = prunerFactory(prunerConfig);
 	return ret;
 }

@@ -7,6 +7,7 @@ export type StageMap = { [k: string]: string[] };
 export interface MethodsState {
 	methodToStageMap: { [k: string]: StageMap };
 	methodToNameMap: { [k: string]: string };
+	stateFromToMovesMap: { [k: string]: string };
 }
 
 export const new_method = createAction<{ name: string; id: string }>('new_method');
@@ -18,10 +19,21 @@ export const rename_stage = createAction<{ method: string; stage: string; name: 
 	'rename_stage'
 );
 export const remove_stage = createAction<{ method: string; stage: string }>('remove_stage');
+export const set_moveset = createAction<{
+	method: string;
+	from_id: string;
+	to_id: string;
+	moveset: string;
+}>('set_moveset');
+
+export function makeFromToKey(payload: { from_id: string; to_id: string }): string {
+	return payload.from_id + '||' + payload.to_id;
+}
 
 export const initialState: MethodsState = {
 	methodToStageMap: {},
-	methodToNameMap: {}
+	methodToNameMap: {},
+	stateFromToMovesMap: {}
 };
 
 export const methods = createReducer(initialState, (r) => {
@@ -36,6 +48,10 @@ export const methods = createReducer(initialState, (r) => {
 			state.methodToStageMap[payload.method][parent] = [];
 		}
 		state.methodToStageMap[payload.method][parent].push(payload.stage);
+	});
+
+	r.addCase(set_moveset, (state, { payload }) => {
+		state.stateFromToMovesMap[makeFromToKey(payload)] = payload.moveset;
 	});
 
 	r.addCase(remove_stage, (state, { payload }) => {

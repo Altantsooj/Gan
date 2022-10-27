@@ -3,6 +3,8 @@
 	import { store } from '$lib/store';
 	import { Mask, type MaskT } from '$lib/third_party/onionhoney/CubeLib';
 	import Autocomplete from '@smui-extra/autocomplete';
+	import Checkbox from '@smui/checkbox';
+	import FormField from '@smui/form-field';
 	import Button, { Label } from '@smui/button';
 	import Dialog, { Actions, Content, Title } from '@smui/dialog';
 	import { Text } from '@smui/list';
@@ -12,6 +14,7 @@
 		delete_stage,
 		new_stage,
 		set_free_face,
+		set_frozen_face,
 		set_state,
 		use_orientations,
 		type Stage
@@ -94,9 +97,9 @@
 	async function redisplay() {
 		displayMask(mask);
 		if (stage) {
-			orientationSpec =
-				$store.stages.stageIdToStageMap[stage[0]].orientations.length > 1 ? 'cn' : '';
+			cnChecked = $store.stages.stageIdToStageMap[stage[0]].orientations.length > 1;
 			freeFace = $store.stages.stageIdToStageMap[stage[0]].free_face || '';
+			frozenFace = $store.stages.stageIdToStageMap[stage[0]].frozen_face || '';
 		}
 	}
 	onMount(async () => {
@@ -139,7 +142,7 @@
 				$store.auth.uid,
 				new_stage({ id, name, mask: Mask.solved_mask })
 			);
-			const nextOne: [string, Stage] = [id, { name, mask: Mask.copy(mask) }];
+			const nextOne: [string, Stage] = [id, { name, mask: Mask.copy(mask), orientations: [] }];
 			dispatch('stage', { stage: nextOne });
 		}
 	}
@@ -165,7 +168,7 @@
 				$store.auth.uid,
 				new_stage({ id, name, mask: Mask.copy(mask) })
 			);
-			const nextOne: [string, Stage] = [id, { name, mask: Mask.copy(mask) }];
+			const nextOne: [string, Stage] = [id, { name, mask: Mask.copy(mask), orientations: [] }];
 			dispatch('stage', { stage: nextOne });
 		}
 	}
@@ -191,20 +194,22 @@
 		unusedText = lastInput.value;
 	}
 
-	let orientationSpec = '';
+	let cnChecked = false;
 	let freeFace = '';
-	let lastOrientationSpec = '';
+	let frozenFace = '';
+	let lastOrientationSpec = false;
 	let lastFreeFace = '';
+	let lastFrozenFace = '';
 
-	$: if (stage && orientationSpec !== lastOrientationSpec) {
+	$: if (stage && cnChecked !== lastOrientationSpec) {
 		if ($store.auth.uid) {
-			lastOrientationSpec = orientationSpec;
+			lastOrientationSpec = cnChecked;
 			const id = stage[0];
 			dispatchToFirebase(
 				'stages',
 				id,
 				$store.auth.uid,
-				use_orientations({ id, orientation_spec: orientationSpec })
+				use_orientations({ id, orientation_spec: cnChecked ? 'cn' : '' })
 			);
 		}
 	}
@@ -214,6 +219,18 @@
 			lastFreeFace = freeFace;
 			const id = stage[0];
 			dispatchToFirebase('stages', id, $store.auth.uid, set_free_face({ id, free_face: freeFace }));
+		}
+	}
+	$: if (stage && frozenFace !== lastFrozenFace) {
+		if ($store.auth.uid) {
+			lastFrozenFace = frozenFace;
+			const id = stage[0];
+			dispatchToFirebase(
+				'stages',
+				id,
+				$store.auth.uid,
+				set_frozen_face({ id, frozen_face: frozenFace })
+			);
 		}
 	}
 </script>
@@ -242,8 +259,13 @@
 		{/if}
 		<Button on:click={() => (dialogOpen = true)}>New Stage</Button>
 		<Button on:click={destroyStage}>Delete</Button>
-		<Textfield bind:value={orientationSpec} label="Orientation Spec" />
+		<div class="row">
+			<FormField
+				><Checkbox bind:checked={cnChecked} /><span slot="label">Colour Neutral</span></FormField
+			>
+		</div>
 		<Textfield bind:value={freeFace} label="Free Face" />
+		<Textfield bind:value={frozenFace} label="Frozen Face" />
 	</div>
 	<Dialog
 		bind:open={dialogOpen}
@@ -273,6 +295,11 @@
 	.column {
 		display: flex;
 		flex-direction: column;
+		align-items: flex-start;
+	}
+	.row {
+		display: flex;
+		flex-direction: row;
 		align-items: flex-start;
 	}
 	.container {

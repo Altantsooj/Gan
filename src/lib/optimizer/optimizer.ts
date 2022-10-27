@@ -68,7 +68,7 @@ export function makeOptimizedDataFromStages(scrambleString: string, rstages: Sol
 		cube = cube.changeBasis(spin);
 		const startTimestamp = new Date().getTime();
 		optimized.push(
-			solve(stage.stageId || stage.stage, cube, config)
+			solve(stage.stageId || stage.stage, cube, config, i > 0 ? rstages[i - 1].stageId : undefined)
 				.map((sol) => ({
 					...sol,
 					orientation: ori,

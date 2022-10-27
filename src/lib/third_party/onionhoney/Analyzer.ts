@@ -2,9 +2,10 @@ import { CubeUtil, CubieCube, Mask, Move, MoveSeq, type MaskT } from './CubeLib'
 import { CachedSolver } from './CachedSolver';
 import { getEvaluator } from './Evaluator';
 import { store } from '$lib/store';
-import type { Stage } from '$lib/components/stages';
+import { makeFromToKey } from '$lib/components/methods';
 import { makePrunerConfigFromMask } from './Pruner';
 import { solverFactory, solverFactory2 } from './Solver';
+import type { Stage } from '$lib/components/stages';
 
 export type AnalyzerState = {
 	scramble: string;
@@ -233,17 +234,36 @@ export function analyze_roux_solve(cube: CubieCube, solve: MoveSeq) {
 	}
 }
 
-let lastMask: MaskT | undefined = undefined;
-export function getSolverFromStageId(stageId: string) {
+export function getSolverFromStageId(idKey: string) {
+	const ids = idKey.split('||');
+	const stageId = ids[ids.length - 1];
+	let allowedMoves: string[] | undefined = undefined;
 	const stage: Stage = store.getState().stages.stageIdToStageMap[stageId];
+	const moveset = store.getState().methods.stateFromToMovesMap[idKey];
+	if (moveset) {
+		allowedMoves = moveset.split(' ');
+	}
 	const mask: MaskT = stage.mask;
-	const config = makePrunerConfigFromMask(stage.name, mask, lastMask);
-	lastMask = mask;
+	const config = makePrunerConfigFromMask(stage.name, mask, allowedMoves);
 	return solverFactory(config);
 }
-export function solve(solver_str: string, cube: CubieCube, config: SolverConfig) {
-	const solver = CachedSolver.get(solver_str) || getSolverFromStageId(solver_str);
+export function solve(
+	solver_str: string,
+	cube: CubieCube,
+	config: SolverConfig,
+	prior_stage?: string
+) {
+	const key = prior_stage ? makeFromToKey({ from_id: prior_stage, to_id: solver_str }) : solver_str;
+	const solver = CachedSolver.get(key);
 	const { premoves, num_solution, upper_limit } = config;
+	let actual_limit = upper_limit;
+	if (solver.getPruners().length === 1) {
+		const pruner = solver.getPruners()[0];
+		const SEARCH_TOLERANCE = 5;
+		if (upper_limit < pruner.max_depth + SEARCH_TOLERANCE) {
+			actual_limit = pruner.max_depth + SEARCH_TOLERANCE;
+		}
+	}
 	const ev = getEvaluator(config.evaluator || 'sequential');
 	const solver_num_solution = num_solution < 10 ? 10 : num_solution;
 	const solutions = (premoves || [''])

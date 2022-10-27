@@ -1,6 +1,7 @@
 import { makeOptimizedData, visualize } from '$lib/optimizer/optimizer';
 import { store } from '$lib/store';
 import { new_stage } from '$lib/components/stages';
+import { set_moveset } from '$lib/components/methods';
 import {
 	analyze_roux_solve,
 	get_oris,
@@ -89,6 +90,14 @@ LLLFFFRRRBBB
 		store.dispatch(new_stage({ id: '3', name: 'cmll', mask: Mask.cmll_mask, free_face: 'U' }));
 		store.dispatch(new_stage({ id: '4', name: 'lse', mask: Mask.lse_mask }));
 		store.dispatch(new_stage({ id: '5', name: 'solved', mask: Mask.solved_mask }));
+		const rrwmu = "U U' U2 R R' R2 r r' r2 M' M M2";
+		store.dispatch(set_moveset({ from_id: '0', to_id: '1.0', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '0', to_id: '1.1', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '1.0', to_id: '2', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '1.1', to_id: '2', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '2', to_id: '3', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '3', to_id: '4', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '4', to_id: '5', method: '0', moveset: rrwmu }));
 		const crossMask: MaskT = {
 			cp: [0, 0, 0, 0, 0, 0, 0, 0],
 			ep: [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],

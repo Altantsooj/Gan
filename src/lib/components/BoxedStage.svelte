@@ -46,6 +46,8 @@
 				.slice(0)
 				.map((x) => $store.stages.stageIdToStageMap[x].name)
 				.sort();
+			nextStage = items[0];
+			nextStageId = lastItems[0];
 		}
 	}
 	$: options = Object.keys($store.stages.stageIdToStageMap)
@@ -55,7 +57,8 @@
 	let nextStage: string | undefined = undefined;
 	let nextStageId: string | undefined = undefined;
 	$: if (stage) {
-		nextStage = undefined;
+		nextStage = items[0];
+		nextStageId = lastItems[0];
 	}
 </script>
 

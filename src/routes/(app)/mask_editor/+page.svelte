@@ -15,10 +15,12 @@
 	import { create as createMethod } from '$lib/actionlog';
 	import { new_stage, stages, type Stage } from '$lib/components/stages';
 	import { Mask, type MaskT } from '$lib/third_party/onionhoney/CubeLib';
+	import AlgSetsEditor from '$lib/components/AlgSetsEditor.svelte';
 
 	$: entries = Object.entries($store.methods.methodToNameMap);
 	$: items = entries.map((x) => x[1]);
 	let methodIndex: number | undefined = undefined;
+	let methodId = '';
 
 	function destroy(event: CustomEvent) {
 		if (event.detail.index !== undefined && $store.auth.uid) {
@@ -39,6 +41,10 @@
 	}
 	function selectMethod(event: CustomEvent) {
 		methodIndex = event.detail.index;
+		if (methodIndex !== undefined) {
+			methodId = entries[methodIndex][0];
+		}
+		stage = undefined;
 	}
 
 	$: allStages = Object.entries($store.stages.stageIdToStageMap) || [];
@@ -144,6 +150,8 @@
 	<div class="row">
 		{#if stage}
 			<SVGCube {stage} {allStages} on:destroy={destroyStage} on:stage={renameStage} />
+		{:else if methodId}
+			<AlgSetsEditor {methodId} />
 		{/if}
 	</div>
 </div>
