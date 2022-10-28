@@ -233,8 +233,6 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 			ep = BigInt(0),
 			co = BigInt(0),
 			cp = BigInt(0);
-		// hold it right
-		cube = cube.apply(getUpFaceRotation(cube));
 		for (let i = 0; i < 12; i++) {
 			switch (def.edge[cube.ep[i]]) {
 				case S:
@@ -258,8 +256,14 @@ const prunerFactory = function (def: PrunerDef): PrunerConfig {
 					break;
 			}
 		}
+		let t = 0n;
+		for (let i = 0; i < 6; ++i) {
+			if (def.center[cube.tp[i]] === S) {
+				t += 2n ** BigInt(i);
+			}
+		}
 		const c = cp * 3n ** BigInt(cosize) + co;
-		return e * BigInt(csize) + c;
+		return (e * BigInt(csize) + c) * 64n + t;
 	}
 
 	const solved_states = def.solved_states.map((m) => new CubieCube().apply(m));
