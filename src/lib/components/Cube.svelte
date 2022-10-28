@@ -19,11 +19,13 @@
 		const regular = '-';
 		const dim = 'D';
 		const muted = 'I';
+		const oriented = '?';
 
 		function stringify(
 			perm: number[],
 			cubies: number[],
 			mask: number[],
+			orient: number[] | undefined,
 			prior: number[] | undefined
 		) {
 			const ret: string[] = [];
@@ -32,6 +34,8 @@
 				if (mask[i] === 1) {
 					if (prior && prior[i] === 1) ret.push(dim);
 					else ret.push(regular);
+				} else if (orient && orient[i]) {
+					ret.push(oriented);
 				} else {
 					ret.push(muted);
 				}
@@ -42,14 +46,16 @@
 		//[UF, UR, UB, UL, DF, DR, DB, DL, FR, FL, BR, BL];
 		const edgePerm = [0, 3, 2, 1, 4, 7, 6, 5, 11, 8, 10, 9];
 		const edges =
-			'EDGES:' + stringify(edgePerm, cubies.ep, mask.ep, priorMask ? priorMask.ep : undefined);
+			'EDGES:' +
+			stringify(edgePerm, cubies.ep, mask.ep, mask.eo, priorMask ? priorMask.ep : undefined);
 
 		//  0 .  1 .  2 .  3 .  4 .  5 .  6 .  7
 		//[ULF, UBL, URB, UFR, DFL, DLB, DBR, DRF];
 		//[UFR, URB, UBL, ULF, DRF, DFL, DLB, DBR
 		const cornerPerm: number[] = [3, 2, 1, 0, 7, 4, 5, 6];
 		const corners =
-			'CORNERS:' + stringify(cornerPerm, cubies.cp, mask.cp, priorMask ? priorMask.cp : undefined);
+			'CORNERS:' +
+			stringify(cornerPerm, cubies.cp, mask.cp, mask.co, priorMask ? priorMask.cp : undefined);
 
 		//[0, 1, 2, 3, 4, 5];
 		//[U, D, F, B, L, R];
@@ -61,6 +67,7 @@
 				centerPerm,
 				cubies.tp,
 				mask.tp || [1, 1, 1, 1, 1, 1],
+				undefined,
 				priorMask && priorMask.tp ? priorMask.tp : undefined
 			);
 
