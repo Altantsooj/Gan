@@ -12,7 +12,9 @@
 	export let optimizer: Worker;
 	const port = optimizer;
 	onMount(async () => {
-		optimizer.onerror = (e) => { console.error(e) };
+		optimizer.onerror = (e) => {
+			console.error(e);
+		};
 		port.onmessage = onOptimizerResult;
 	});
 

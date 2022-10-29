@@ -592,6 +592,11 @@ export class MoveSeq {
 				const k = MoveSeq.quarterMap[m.name] || m.name[0];
 				nm.push(Move.all[k]);
 				nm.push(Move.all[k]);
+			} else if (m.name[1] === '3') {
+				const k = MoveSeq.quarterMap[m.name] || m.name[0];
+				nm.push(Move.all[k]);
+				nm.push(Move.all[k]);
+				nm.push(Move.all[k]);
 			} else {
 				nm.push(m);
 			}

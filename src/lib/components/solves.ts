@@ -37,19 +37,39 @@ export const initialState = {
 	solveIdToSolve: {}
 } as SolvesState;
 
-export const solves = createReducer(initialState, (r) => {
-	function makeSolve(solve: SolvePayload): Solve {
-		let cube = new CubieCube().apply(new MoveSeq(solve.scramble).inv());
-		let numMovesToScramble = 0;
-		while (!CubeUtil.is_cube_solved(cube) && numMovesToScramble < solve.moves.length) {
-			cube = cube.apply(solve.moves[numMovesToScramble++].move);
+export function makeSolve(solve: SolvePayload): Solve {
+	let cube = new CubieCube().apply(new MoveSeq(solve.scramble).inv());
+	let numMovesToScramble = 0;
+	while (!CubeUtil.is_cube_solved(cube) && numMovesToScramble < solve.moves.length) {
+		const qMoves: MoveSeq = new MoveSeq(solve.moves[numMovesToScramble++].move).toQuarter();
+		for (let i = 0; i < qMoves.length(); ++i) {
+			cube = cube.apply(qMoves.moves[i]);
+			if (CubeUtil.is_cube_solved(cube) && i + 1 < qMoves.moves.length) {
+				// split is in the middle of this move.
+				const turns = solve.moves;
+				const scrambleSeq = qMoves.moves.slice(0, i + 1).map((x) => {
+					return { move: x.name, timestamp: 0 };
+				});
+				const timestamp = solve.moves[numMovesToScramble - 1].timestamp;
+				const solveSeq = {
+					move: new MoveSeq(qMoves.moves.slice(i + 1)).collapse().moves[0].name,
+					timestamp
+				};
+				const scrambleTurns = [...turns.slice(0, numMovesToScramble - 1), ...scrambleSeq];
+				const solveTurns = [solveSeq, ...turns.slice(numMovesToScramble)];
+				solve.moves = [...scrambleTurns, ...solveTurns] as MoveInfo[];
+				break;
+			}
 		}
-		return {
-			...solve,
-			numMovesToScramble,
-			numMovesToSolve: solve.moves.length - numMovesToScramble
-		};
 	}
+	return {
+		...solve,
+		numMovesToScramble,
+		numMovesToSolve: solve.moves.length - numMovesToScramble
+	};
+}
+
+export const solves = createReducer(initialState, (r) => {
 	r.addCase(add_scramble, (state, action) => {
 		state.allScrambles.push(action.payload.scramble);
 		if (!state.scrambleToSolveIds[action.payload.scramble]) {

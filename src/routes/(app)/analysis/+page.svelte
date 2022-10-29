@@ -19,7 +19,7 @@
 </script>
 
 <div class="container">
-	<Solve {methodId} {solveId} {displayMode} {optimizer}/>
+	<Solve {methodId} {solveId} {displayMode} {optimizer} />
 	<Button on:click={next}>
 		<Label>Next Scramble</Label>
 		<i class="material-icons" aria-hidden="true">arrow_forward</i>
