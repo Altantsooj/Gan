@@ -41,7 +41,7 @@ export function analyzeSolve2(
 		const e = `method ${method} not found in custom methods`;
 		throw e;
 	}
-	const moves = [Move.all['id'], ...solution.moves];
+	const moves = [Move.all['id'], ...solution.moves]; //.map(x => new MoveSeq([x]).toQuarter().moves).flat();
 	let currentStage = 'scrambled';
 	let cube = scrambledCube;
 	let movesSoFar = [];
