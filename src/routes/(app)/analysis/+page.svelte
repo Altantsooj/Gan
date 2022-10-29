@@ -13,10 +13,13 @@
 		goto('/' + sourcePage);
 	}
 	let displayMode = sourcePage !== 'trending_down' ? 'times' : 'moves';
+
+	export let data;
+	const optimizer = data.optimizer;
 </script>
 
 <div class="container">
-	<Solve {methodId} {solveId} {displayMode} />
+	<Solve {methodId} {solveId} {displayMode} {optimizer}/>
 	<Button on:click={next}>
 		<Label>Next Scramble</Label>
 		<i class="material-icons" aria-hidden="true">arrow_forward</i>

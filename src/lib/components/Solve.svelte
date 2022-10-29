@@ -8,11 +8,12 @@
 	import { MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 	import { analyzeSolve } from '$lib/components/MethodReconstruction';
 	import { onMount } from 'svelte';
-	import OptimizerWorker from '$lib/OptimizerWorker?worker';
 
-	const optimizer = new OptimizerWorker();
+	export let optimizer: Worker;
+	const port = optimizer;
 	onMount(async () => {
-		optimizer.onmessage = onOptimizerResult;
+		optimizer.onerror = (e) => { console.error(e) };
+		port.onmessage = onOptimizerResult;
 	});
 
 	function onOptimizerResult(data: any) {
@@ -77,7 +78,7 @@
 	$: if (scrambleString && solutionString && methodId) {
 		const methods = $store.methods;
 		const stages = $store.stages;
-		optimizer.postMessage({
+		port.postMessage({
 			type: 'optimize',
 			scrambleString,
 			solutionString,
