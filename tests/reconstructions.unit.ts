@@ -338,22 +338,22 @@ LLLFFFRRRBBB
 		const optimized = makeOptimizedData(scramble, breakdown);
 		expect(optimized.length).to.equal(6);
 		expect(optimized[0].length).to.equal(2);
-		expect(optimized[0][0].solution.toString()).to.equal("x D F' U R' U2 F ");
-		expect(optimized[0][1].solution.toString()).to.equal("x U' D' R' U R U D2 ");
+		expect(optimized[0][0].solution.toString()).to.equal("x U R U' R F2 r' D2 B ");
+		expect(optimized[0][1].solution.toString()).to.equal("x U r' B U' r' F' M D ");
 		expect(optimized[1].length).to.equal(2);
 		expect(optimized[1][0].solution.toString()).to.equal("R U2 R' U2 R' ");
-		expect(optimized[1][1].solution.toString()).to.equal("r U2 R' U2 r' ");
+		expect(optimized[1][1].solution.toString()).to.equal("U R U R' U' R' ");
 		expect(optimized[2].length).to.equal(2);
-		expect(optimized[2][0].solution.toString()).to.equal("M' U r' U2 R U R' U' R ");
-		expect(optimized[2][1].solution.toString()).to.equal("U R' U r U2 R' M2 U' r ");
+		expect(optimized[2][0].solution.toString()).to.equal("r' U2 R M U' r' U R ");
+		expect(optimized[2][1].solution.toString()).to.equal("r' U2 R U' R' M2 U R ");
 		expect(optimized[3].length).to.equal(0);
 		//expect(optimized[3][0].solution.toString()).to.equal("");
 		//expect(optimized[3][1].solution.toString()).to.equal("");
 		expect(optimized[4].length).to.equal(1);
 		expect(optimized[4][0].solution.toString()).to.equal('U ');
 		expect(optimized[5].length).to.equal(2);
-		expect(optimized[5][0].solution.toString()).to.equal("U' M2 U r U2 M U2 r' U M U' ");
-		expect(optimized[5][1].solution.toString()).to.equal("U' M2 U' r' U2 M U2 r U' M U' ");
+		expect(optimized[5][0].solution.toString()).to.equal("U' M2 U r' U2 M' U2 r U M U' ");
+		expect(optimized[5][1].solution.toString()).to.equal("U' M2 U' r U2 M' U2 r' U' M U' ");
 	});
 
 	it('custom analyzer gets fb correct', () => {
@@ -367,7 +367,7 @@ LLLFFFRRRBBB
 		const optimized = makeOptimizedData(scramble, breakdown);
 		expect(optimized.length).to.equal(6);
 		expect(optimized[0].length).to.equal(2);
-		expect(optimized[0][0].solution.toString()).to.equal("x' U' R B' r U2 D F D2 ");
-		expect(optimized[0][1].solution.toString()).to.equal("x' U' B' r D R U2 F D2 ");
+		expect(optimized[0][0].solution.toString()).to.equal("x' F2 B' U2 D F D2 ");
+		expect(optimized[0][1].solution.toString()).to.equal("x' F D F U2 D' R B' ");
 	});
 });
