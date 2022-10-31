@@ -83,4 +83,3 @@ describe('scrambles', () => {
 		expect(solve.moves.length).to.equal(moves.length + 1);
 	});
 });
-

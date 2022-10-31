@@ -8,6 +8,7 @@ export interface MethodsState {
 	methodToStageMap: { [k: string]: StageMap };
 	methodToNameMap: { [k: string]: string };
 	stateFromToMovesMap: { [k: string]: string };
+	stateFromToNameMap: { [k: string]: string };
 }
 
 export const new_method = createAction<{ name: string; id: string }>('new_method');
@@ -25,6 +26,12 @@ export const set_moveset = createAction<{
 	to_id: string;
 	moveset: string;
 }>('set_moveset');
+export const set_algsetname = createAction<{
+	method: string;
+	from_id: string;
+	to_id: string;
+	name: string;
+}>('set_algsetname');
 
 export function makeFromToKey(payload: { from_id: string; to_id: string }): string {
 	return payload.from_id + '||' + payload.to_id;
@@ -33,7 +40,8 @@ export function makeFromToKey(payload: { from_id: string; to_id: string }): stri
 export const initialState: MethodsState = {
 	methodToStageMap: {},
 	methodToNameMap: {},
-	stateFromToMovesMap: {}
+	stateFromToMovesMap: {},
+	stateFromToNameMap: {}
 };
 
 export const methods = createReducer(initialState, (r) => {
@@ -52,6 +60,9 @@ export const methods = createReducer(initialState, (r) => {
 
 	r.addCase(set_moveset, (state, { payload }) => {
 		state.stateFromToMovesMap[makeFromToKey(payload)] = payload.moveset;
+	});
+	r.addCase(set_algsetname, (state, { payload }) => {
+		state.stateFromToNameMap[makeFromToKey(payload)] = payload.name;
 	});
 
 	r.addCase(remove_stage, (state, { payload }) => {

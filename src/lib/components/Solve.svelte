@@ -8,6 +8,7 @@
 	import { MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 	import { analyzeSolve } from '$lib/components/MethodReconstruction';
 	import { onMount } from 'svelte';
+	import { makeFromToKey } from './methods';
 
 	export let optimizer: Worker;
 	const port = optimizer;
@@ -68,7 +69,7 @@
 
 	$: stages = getStages(scrambleString, solutionString);
 	$: edges = stages.map((s, i) =>
-		i === 0 ? edgeFrom('scrambled', s.stage) : edgeFrom(stages[i - 1].stage, s.stage)
+		i === 0 ? edgeFrom('scrambled', s.stageId) : edgeFrom(stages[i - 1].stageId, s.stageId)
 	);
 	$: cubeAlg = makeText(stages);
 	$: optimized = [] as {
@@ -94,8 +95,11 @@
 	function translate(key: string) {
 		return translation[key] || key;
 	}
-	function edgeFrom(s0: string, s1: string) {
-		return s0 + '→' + s1;
+	function edgeFrom(from_id: string | undefined, to_id: string | undefined) {
+		if (methodId && from_id && to_id) {
+			return $store.methods.stateFromToNameMap[makeFromToKey({ from_id, to_id })];
+		}
+		return to_id;
 	}
 	const translation: { [k: string]: string } = {
 		fb: 'First block',

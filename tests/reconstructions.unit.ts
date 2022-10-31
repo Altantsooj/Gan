@@ -91,13 +91,6 @@ LLLFFFRRRBBB
 		store.dispatch(new_stage({ id: '4', name: 'lse', mask: Mask.lse_mask }));
 		store.dispatch(new_stage({ id: '5', name: 'solved', mask: Mask.solved_mask }));
 		const rrwmu = "U U' U2 R R' R2 r r' r2 M' M M2";
-		store.dispatch(set_moveset({ from_id: '0', to_id: '1.0', method: '0', moveset: rrwmu }));
-		store.dispatch(set_moveset({ from_id: '0', to_id: '1.1', method: '0', moveset: rrwmu }));
-		store.dispatch(set_moveset({ from_id: '1.0', to_id: '2', method: '0', moveset: rrwmu }));
-		store.dispatch(set_moveset({ from_id: '1.1', to_id: '2', method: '0', moveset: rrwmu }));
-		store.dispatch(set_moveset({ from_id: '2', to_id: '3', method: '0', moveset: rrwmu }));
-		store.dispatch(set_moveset({ from_id: '3', to_id: '4', method: '0', moveset: rrwmu }));
-		store.dispatch(set_moveset({ from_id: '4', to_id: '5', method: '0', moveset: rrwmu }));
 		const crossMask: MaskT = {
 			cp: [0, 0, 0, 0, 0, 0, 0, 0],
 			ep: [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
@@ -127,6 +120,13 @@ LLLFFFRRRBBB
 			'0,2,3,4,5,0.1,1.0,1.1,f0,f1,f2,f3'
 		);
 		store.dispatch(new_method({ id: '0', name: 'Roux' }));
+		store.dispatch(set_moveset({ from_id: '0', to_id: '1.0', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '0', to_id: '1.1', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '1.0', to_id: '2', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '1.1', to_id: '2', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '2', to_id: '3', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '3', to_id: '4', method: '0', moveset: rrwmu }));
+		store.dispatch(set_moveset({ from_id: '4', to_id: '5', method: '0', moveset: rrwmu }));
 		store.dispatch(add_stage({ method: '0', stage: '0' }));
 		store.dispatch(add_stage({ method: '0', stage: '1.0', parent: '0' }));
 		store.dispatch(add_stage({ method: '0', stage: '1.1', parent: '0' }));
@@ -335,6 +335,7 @@ LLLFFFRRRBBB
 			scramble,
 			"B2' L2 B' L2 R' F R F2 S R2 B F' R' U2 F U F2 U' F' F B' R2' F' R' S2' R' B U' B' R' S2' R' B U B' R' B F U F' U F U2 F' U F U F' L' F U F' U' F' L F2 U' F' U S U2 S' U2 S' U S U' S U2 S U S2 U' S' U2 S' U2 S2' U2"
 		);
+		expect(breakdown.length).to.equal(6);
 		const optimized = makeOptimizedData(scramble, breakdown);
 		expect(optimized.length).to.equal(6);
 		expect(optimized[0].length).to.equal(2);
