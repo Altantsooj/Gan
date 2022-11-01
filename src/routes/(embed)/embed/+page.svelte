@@ -44,6 +44,9 @@
 	$: solve = solveId ? $store.solves.solveIdToSolve[solveId] : undefined;
 
 	$: time = solve && solve.time / 10;
+
+	export let data;
+	const optimizer = data.optimizer;
 </script>
 
-<Solve {solveId} {methodId} />
+<Solve {solveId} {methodId} {optimizer} />
