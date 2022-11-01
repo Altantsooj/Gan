@@ -33,7 +33,7 @@ export async function watchAll(type: string) {
 		(querySnapshot) => {
 			querySnapshot.docChanges().forEach(async (change) => {
 				if (change.type === 'added' || (change.type === 'modified' && change.doc)) {
-					let docId = change.doc.id;
+					const docId = change.doc.id;
 					if (watching[docId]) {
 						watching[docId]();
 					}

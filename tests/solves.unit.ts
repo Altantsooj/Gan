@@ -82,4 +82,28 @@ describe('scrambles', () => {
 		// start to the solve
 		expect(solve.moves.length).to.equal(moves.length + 1);
 	});
+
+	it('splits the scramble out of the turns correctly II', () => {
+		const bugData = {
+			id: 'vuAoKoVVx0lMi7rqlZez',
+			scramble: "U L U2 D B U' D' L F' L2 B R2 U2 L2' B R2 B L2' R",
+			turns:
+				"U L U2 D B U' D' L F' L2' B R2 U2 L2' B R2 B L2' R2 L D L L' L L3' L F F' L3' F L2' S2 U' L' F3 L L' D' L D' L2' F' L F' L' S L S2' L2' B' U' B B' B L F L S' L2' S L F' L' B D B' L2 F L b' U' F' L F L' U2 L F U' F' U' F U F' L' U' U L F U F' U' L' U2 F U F' U' F' L F L' U F U b' U' F R F' R' F' d R2 x' U' R' U' R U R' F' F R F' F R' R U' l' B2 M' B M B2 M' B M M2' B M2' B' M B2 M' B2"
+		};
+		const moves: MoveInfo[] = bugData.turns.split(' ').map((x) => {
+			return { move: x, timestamp: 0 };
+		});
+		const solvePayload: SolvePayload = {
+			solveId: bugData.id,
+			scramble: bugData.scramble,
+			moves,
+			time: 0
+		};
+		const scrambleLength = bugData.scramble.split(' ').length;
+		const solve = makeSolve(solvePayload);
+		expect(solve.numMovesToScramble).to.equal(scrambleLength);
+		// last move was a R2 which was really the R of the scramble and R
+		// to start to the solve
+		expect(solve.moves.length).to.equal(moves.length + 1);
+	});
 });

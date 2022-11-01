@@ -41,7 +41,7 @@ export function makeSolve(solve: SolvePayload): Solve {
 	let cube = new CubieCube().apply(new MoveSeq(solve.scramble).inv());
 	let numMovesToScramble = 0;
 	while (!CubeUtil.is_cube_solved(cube) && numMovesToScramble < solve.moves.length) {
-		const qMoves: MoveSeq = new MoveSeq(solve.moves[numMovesToScramble++].move).toQuarter();
+		const qMoves: MoveSeq = new MoveSeq(solve.moves[numMovesToScramble++].move).toSingles();
 		for (let i = 0; i < qMoves.length(); ++i) {
 			cube = cube.apply(qMoves.moves[i]);
 			if (CubeUtil.is_cube_solved(cube) && i + 1 < qMoves.moves.length) {

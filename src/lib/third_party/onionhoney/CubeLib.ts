@@ -592,8 +592,21 @@ export class MoveSeq {
 				const k = MoveSeq.quarterMap[m.name] || m.name[0];
 				nm.push(Move.all[k]);
 				nm.push(Move.all[k]);
+			} else {
+				nm.push(m);
+			}
+		}
+		return new MoveSeq(nm);
+	}
+	toSingles() {
+		const nm: Move[] = [];
+		for (let i = 0; i < this.moves.length; i++) {
+			const m = this.moves[i];
+			const k = m.name[0] + (m.name.length > 2 ? "'" : '');
+			if (m.name[1] === '2') {
+				nm.push(Move.all[k]);
+				nm.push(Move.all[k]);
 			} else if (m.name[1] === '3') {
-				const k = MoveSeq.quarterMap[m.name] || m.name[0];
 				nm.push(Move.all[k]);
 				nm.push(Move.all[k]);
 				nm.push(Move.all[k]);
