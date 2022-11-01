@@ -31,7 +31,6 @@
 	import firebase from '$lib/firebase';
 	import { add_scramble, add_solve } from '$lib/components/solves';
 	import type { AnyAction } from '@reduxjs/toolkit';
-	import { watchAll } from '$lib/actionlog';
 
 	$: open = width > 720;
 	$: active = $store.nav.active.split('/')[0];
@@ -68,16 +67,6 @@
 	}
 
 	let loading = true;
-
-	let unsubMethods: Promise<Unsubscribe> | undefined;
-	let unsubStages: Promise<Unsubscribe> | undefined;
-
-	$: if (!unsubMethods) {
-		unsubMethods = watchAll('methods');
-	}
-	$: if (!unsubStages) {
-		unsubStages = watchAll('stages');
-	}
 
 	let unsubSolves: Unsubscribe | undefined;
 	let unsubScrambles: Unsubscribe | undefined;

@@ -43,10 +43,30 @@
 
 	$: solve = solveId ? $store.solves.solveIdToSolve[solveId] : undefined;
 
-	$: time = solve && solve.time / 10;
+	$: methodKnown =
+		methodId && $store.methods.methodToStageMap[methodId] && stagesExist(methodId, 'scrambled');
+
+	function stagesExist(methodId: string, currentStage: string) {
+		let stage = $store.stages.stageIdToStageMap[currentStage];
+		if (!stage && currentStage !== 'scrambled') return false;
+		let next = $store.methods.methodToStageMap[methodId][currentStage];
+		if (next === undefined) {
+			return true;
+		}
+		for (let i = 0; i < next.length; ++i) {
+			if (!stagesExist(methodId, next[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	export let data;
 	const optimizer = data.optimizer;
 </script>
 
-<Solve {solveId} {methodId} {optimizer} />
+{#if methodKnown}
+	<Solve {solveId} {methodId} {optimizer} />
+{:else}
+	Loading methodId {methodId}...
+{/if}
