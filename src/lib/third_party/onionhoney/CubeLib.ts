@@ -603,13 +603,11 @@ export class MoveSeq {
 		for (let i = 0; i < this.moves.length; i++) {
 			const m = this.moves[i];
 			const k = m.name[0] + (m.name.length > 2 ? "'" : '');
-			if (m.name[1] === '2') {
-				nm.push(Move.all[k]);
-				nm.push(Move.all[k]);
-			} else if (m.name[1] === '3') {
-				nm.push(Move.all[k]);
-				nm.push(Move.all[k]);
-				nm.push(Move.all[k]);
+			if (m.name[1] >= '2' && m.name[1] <= '9') {
+				const numMoves = parseInt(m.name[1]);
+				for (let c = 0; c < numMoves; ++c) {
+					nm.push(Move.all[k]);
+				}
 			} else {
 				nm.push(m);
 			}
@@ -647,7 +645,7 @@ export class MoveSeq {
 		let token = '';
 		const comment_idx = str.search(/\/\//);
 		if (comment_idx > -1) str = str.slice(0, comment_idx);
-		str = str.replaceAll("2'", '2').replaceAll("3'", ''); //.replaceAll(idMove, "");
+		//str = str.replaceAll("2'", '2').replaceAll("3'", ''); //.replaceAll(idMove, "");
 		for (let i = 0; i < str.length; i++) {
 			const ch = str[i];
 			if ((ch >= '0' && ch <= '9') || ch === "'") {

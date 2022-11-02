@@ -106,4 +106,27 @@ describe('scrambles', () => {
 		// to start to the solve
 		expect(solve.moves.length).to.equal(moves.length + 1);
 	});
+	it('splits the scramble out of the turns correctly III', () => {
+		const bugData = {
+			id: 'vuAoKoVVx0lMi7rqlZez',
+			scramble: "U2 D F2 U2 R2 B R' U L R2 D2 F' R2 D2 F L2 U2 R2 F' R2 F2",
+			turns:
+				"U2 D F2 U2 R2 B R' U L R2 D2' F' R2 D2' F L2' U2 R2 F' R2 F4 D2 L' B M' D R2' R U R B R' M' U2 M2' L2' U L U M' U M2' U' L U2 R' F3 L' F' L F' L' F2' L2 F L' U' L F L' F' L' U L2 F' L' M F F2' M' F2 M' F M F M2' F' M2' F M2' F F2"
+		};
+		const moves: MoveInfo[] = bugData.turns.split(' ').map((x) => {
+			return { move: x, timestamp: 0 };
+		});
+		const solvePayload: SolvePayload = {
+			solveId: bugData.id,
+			scramble: bugData.scramble,
+			moves,
+			time: 0
+		};
+		const scrambleLength = bugData.scramble.split(' ').length;
+		const solve = makeSolve(solvePayload);
+		expect(solve.numMovesToScramble).to.equal(scrambleLength);
+		// last move was F4 which was really the F F of the scramble and F2
+		// to start to the solve
+		expect(solve.moves.length).to.equal(moves.length + 2);
+	});
 });

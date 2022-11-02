@@ -1,4 +1,4 @@
-import { CubeUtil, CubieCube, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
+import { CubeUtil, CubieCube, Move, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 import * as toolkitRaw from '@reduxjs/toolkit';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const { createAction, createReducer } = ((toolkitRaw as any).default ??
@@ -42,6 +42,17 @@ export function makeSolve(solve: SolvePayload): Solve {
 	let numMovesToScramble = 0;
 	while (!CubeUtil.is_cube_solved(cube) && numMovesToScramble < solve.moves.length) {
 		const qMoves: MoveSeq = new MoveSeq(solve.moves[numMovesToScramble++].move).toSingles();
+		if (qMoves.length() === 0) {
+			// must have moved the face a multiple of 4 times
+			const move = solve.moves[numMovesToScramble - 1].move;
+			if (move.length >= 2) {
+				const face = Move.all[move[0]];
+				qMoves.moves.push(face);
+				qMoves.moves.push(face);
+				qMoves.moves.push(face);
+				qMoves.moves.push(face);
+			}
+		}
 		for (let i = 0; i < qMoves.length(); ++i) {
 			cube = cube.apply(qMoves.moves[i]);
 			if (CubeUtil.is_cube_solved(cube) && i + 1 < qMoves.moves.length) {
