@@ -28,6 +28,7 @@ service cloud.firestore {
     }
 
     match /{path=**}/solves/{solve} {
+			allow read: if true;
       allow read: if request.auth != null || request.resource.data.solveId == solve;
     }
 
