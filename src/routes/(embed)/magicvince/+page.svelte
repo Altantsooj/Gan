@@ -8,7 +8,7 @@
 	async function updateURL() {
 		$page.url.searchParams.set('alg', alg);
 		const query = $page.url.search;
-		goto(`?${query}`);
+		goto(`${query}`);
 	}
 </script>
 
