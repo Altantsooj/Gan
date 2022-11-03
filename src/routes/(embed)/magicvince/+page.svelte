@@ -5,6 +5,12 @@
 	import { goto } from '$app/navigation';
 
 	let alg = $page.url.searchParams.get('alg') || 'R U R';
+	let lastAlg = $page.url.searchParams.get('alg') || 'R U R';
+	$: nextAlg = $page.url.searchParams.get('alg') || 'R U R';
+	$: if (nextAlg !== lastAlg) {
+		lastAlg = nextAlg;
+		alg = nextAlg;
+	}
 	async function updateURL() {
 		$page.url.searchParams.set('alg', alg);
 		const query = $page.url.search;
