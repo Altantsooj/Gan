@@ -49,7 +49,7 @@
 		let eo = orbit(before.stateData, 'EDGES');
 		let co = orbit(before.stateData, 'CORNERS');
 		let to = orbit(before.stateData, 'CENTERS');
-		const parsedAlg = new Alg(alg);
+		const parsedAlg = new Alg(alg).expand();
 		let next = before;
 		Array.from(parsedAlg.childAlgNodes()).map((move) => {
 			next = before.applyMove(move as Move);
@@ -127,6 +127,18 @@
 		font-size: 32px;
 		font-weight: bold;
 		padding: 4px;
-		margin-right: 8px;
+		margin-right: 4px;
+		margin-left: 1px;
+	}
+
+	:global(.twisty-alg-alg) {
+	}
+
+	:global(.twisty-alg-grouping) {
+		font-family: Roboto, sans-serif;
+		font-size: 32px;
+		font-weight: bold;
+		padding: 2px;
+		margin-left: -4px;
 	}
 </style>
