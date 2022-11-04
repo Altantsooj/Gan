@@ -113,13 +113,130 @@
 			contentElem.appendChild(twistyPlayer);
 		}
 	});
+
+	import {
+		CircleGeometry,
+		MeshStandardMaterial,
+		BoxGeometry,
+		DoubleSide,
+		MeshPhongMaterial,
+		RGBADepthPacking,
+		Color,
+		MeshBasicMaterial
+	} from 'three';
+	import { DEG2RAD } from 'three/src/math/MathUtils';
+	import {
+		AmbientLight,
+		Canvas,
+		DirectionalLight,
+		Group,
+		HemisphereLight,
+		Mesh,
+		OrbitControls,
+		PerspectiveCamera
+	} from '@threlte/core';
+	import { spring } from 'svelte/motion';
+	import { ColorScheme } from '$lib/third_party/onionhoney/CubeLib';
+
+	const scale = spring(1);
+
+	interface CubieCoord {
+		x: number;
+		y: number;
+		z: number;
+	}
+	const cubies = [-1, 0, 1];
+	//const cubies = [ 0];
+	function createBoxGeometry({ x, y, z }: CubieCoord) {
+		const s = 0.995;
+		const ret = new BoxGeometry(s, s, s);
+		ret.translate(x, y, z);
+		return ret;
+	}
+	const colors = {
+		white: new Color(0xffffff).convertSRGBToLinear(),
+		orange: new Color(0xf08733).convertSRGBToLinear(),
+		green: '#00ff00',
+		red: '#FF0000',
+		blue: '#0000FF',
+		yellow: '#ffff00',
+		grey: '#444444',
+		black: '#050505'
+	};
+	function getMaterial({ x, y, z }: CubieCoord) {
+		const U = new MeshPhongMaterial({ color: colors.white });
+		const D = new MeshPhongMaterial({ color: colors.yellow });
+		const L = new MeshPhongMaterial({ color: colors.orange, specular: colors.orange });
+		const R = new MeshPhongMaterial({ color: colors.red });
+		const F = new MeshPhongMaterial({ color: colors.green });
+		const B = new MeshPhongMaterial({ color: colors.blue });
+		const black = new MeshPhongMaterial({ color: colors.black });
+		return [R, L, U, D, F, B].map((c, i) => {
+			if (x === 0 && i < 2) {
+				return black;
+			}
+			if (y === 0 && (i === 2 || i === 3)) {
+				return black;
+			}
+			if (z === 0 && i > 3) {
+				return black;
+			}
+			if (x === -1 && i === 0) {
+				return black;
+			}
+			if (y === -1 && i === 2) {
+				return black;
+			}
+			if (z === -1 && i === 4) {
+				return black;
+			}
+			if (x === 1 && i === 1) {
+				return black;
+			}
+			if (y === 1 && i === 3) {
+				return black;
+			}
+			if (z === 1 && i === 5) {
+				return black;
+			}
+			return c;
+		});
+	}
 </script>
 
-<div id="twisty-content" />
+<div id="twisty-content">
+	<div class="threlte-cube-container">
+		<Canvas>
+			<PerspectiveCamera position={{ x: 10, y: 10, z: 10 }} fov={24}>
+				<OrbitControls autoRotate={false} enableZoom={false} target={{ y: 0.5 }} />
+			</PerspectiveCamera>
+
+			<DirectionalLight color={'white'} position={{ x: -15, y: 45, z: 20 }} intensity={0.5} />
+			<DirectionalLight color={'white'} position={{ x: 15, y: 45, z: -20 }} intensity={0.5} />
+			<HemisphereLight skyColor={colors.white} groundColor={colors.grey} intensity={0.0} />
+			<AmbientLight intensity={1.0} />
+
+			<!-- Cube -->
+			{#each cubies as x}
+				{#each cubies as y}
+					{#each cubies as z}
+						<Mesh geometry={createBoxGeometry({ x, y, z })} material={getMaterial({ x, y, z })} />
+					{/each}
+				{/each}
+			{/each}
+		</Canvas>
+	</div>
+</div>
 
 <style>
 	div {
 		text-align: -webkit-center;
+	}
+
+	.threlte-cube-container {
+		width: 800px;
+		height: 800px;
+		border: 4px solid green;
 	}
 
 	:global(.twisty-alg-move) {

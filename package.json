@@ -40,6 +40,7 @@
 		"@types/chai": "^4.3.3",
 		"@types/d3-scale": "^4.0.2",
 		"@types/mocha": "^9.1.1",
+		"@types/three": "^0.144.0",
 		"@typescript-eslint/eslint-plugin": "^5.27.0",
 		"@typescript-eslint/parser": "^5.27.0",
 		"@vitest/coverage-c8": "^0.23.1",
@@ -66,6 +67,8 @@
 	"type": "module",
 	"dependencies": {
 		"@reduxjs/toolkit": "^1.8.5",
+		"@threlte/core": "^4.3.2",
+		"@threlte/extras": "^4.5.0",
 		"@web/test-runner-playwright": "^0.8.10",
 		"cubing": "^0.31.0",
 		"d3-scale": "^4.0.2",
