@@ -135,7 +135,8 @@
 		OrbitControls,
 		PerspectiveCamera
 	} from '@threlte/core';
-	import { spring } from 'svelte/motion';
+	import { spring, tweened } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
 	import { ColorScheme } from '$lib/third_party/onionhoney/CubeLib';
 
 	const scale = spring(1);
@@ -202,6 +203,17 @@
 			return c;
 		});
 	}
+
+	let count = 0;
+	let rotX = tweened(0, { duration: 500, easing: cubicOut });
+	const tick = () => {
+		if (count % 100 === 0) $rotX += Math.PI / 2;
+		count++;
+		handle = window.requestAnimationFrame(tick);
+	};
+	let handle;
+	tick();
+	$rotX = Math.PI / 2;
 </script>
 
 <div id="twisty-content">
@@ -220,7 +232,11 @@
 			{#each cubies as x}
 				{#each cubies as y}
 					{#each cubies as z}
-						<Mesh geometry={createBoxGeometry({ x, y, z })} material={getMaterial({ x, y, z })} />
+						<Mesh
+							rotation={{ y: y === 1 ? $rotX : 0 }}
+							geometry={createBoxGeometry({ x, y, z })}
+							material={getMaterial({ x, y, z })}
+						/>
 					{/each}
 				{/each}
 			{/each}
