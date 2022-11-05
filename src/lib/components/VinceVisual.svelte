@@ -4,13 +4,17 @@
 	import { cube3x3x3 } from 'cubing/puzzles';
 	import type { KStateData } from 'cubing/kpuzzle';
 	import { Alg, Move } from 'cubing/alg';
+	import TCube from './TCube.svelte';
+	import IconButton from '@smui/icon-button';
 
 	export let alg = "R U R' U'";
 
 	let twistyPlayer: TwistyPlayer | undefined;
-	export let playHead = 0;
+	export let playHead = -1;
 	export let stickeringOrientation = '';
 	export let visualization = 'PG3D';
+
+	let newPlayHead = 0;
 
 	let lastAlg = '';
 	async function setStickering() {
@@ -114,133 +118,19 @@
 		}
 	});
 
-	import {
-		CircleGeometry,
-		MeshStandardMaterial,
-		BoxGeometry,
-		DoubleSide,
-		MeshPhongMaterial,
-		RGBADepthPacking,
-		Color,
-		MeshBasicMaterial
-	} from 'three';
-	import { DEG2RAD } from 'three/src/math/MathUtils';
-	import {
-		AmbientLight,
-		Canvas,
-		DirectionalLight,
-		Group,
-		HemisphereLight,
-		Mesh,
-		OrbitControls,
-		PerspectiveCamera
-	} from '@threlte/core';
-	import { spring, tweened } from 'svelte/motion';
-	import { cubicOut } from 'svelte/easing';
-	import { ColorScheme } from '$lib/third_party/onionhoney/CubeLib';
-
-	const scale = spring(1);
-
-	interface CubieCoord {
-		x: number;
-		y: number;
-		z: number;
+	function plusPlay() {
+		newPlayHead++;
 	}
-	const cubies = [-1, 0, 1];
-	//const cubies = [ 0];
-	function createBoxGeometry({ x, y, z }: CubieCoord) {
-		const s = 0.995;
-		const ret = new BoxGeometry(s, s, s);
-		ret.translate(x, y, z);
-		return ret;
+	function minusPlay() {
+		newPlayHead--;
 	}
-	const colors = {
-		white: new Color(0xffffff).convertSRGBToLinear(),
-		orange: new Color(0xf08733).convertSRGBToLinear(),
-		green: new Color(0x00ff00).convertSRGBToLinear(),
-		red: new Color(0xff0000).convertSRGBToLinear(),
-		blue: new Color(0x0000ff).convertSRGBToLinear(),
-		yellow: new Color(0xffff00).convertLinearToSRGB(),
-		grey: '#444444',
-		black: '#050505'
-	};
-	function getMaterial({ x, y, z }: CubieCoord) {
-		const U = new MeshPhongMaterial({ color: colors.white });
-		const D = new MeshPhongMaterial({ color: colors.yellow });
-		const L = new MeshPhongMaterial({ color: colors.orange });
-		const R = new MeshPhongMaterial({ color: colors.red });
-		const F = new MeshPhongMaterial({ color: colors.green });
-		const B = new MeshPhongMaterial({ color: colors.blue });
-		const black = new MeshPhongMaterial({ color: colors.black });
-		return [R, L, U, D, F, B].map((c, i) => {
-			if (x === 0 && i < 2) {
-				return black;
-			}
-			if (y === 0 && (i === 2 || i === 3)) {
-				return black;
-			}
-			if (z === 0 && i > 3) {
-				return black;
-			}
-			if (x === -1 && i === 0) {
-				return black;
-			}
-			if (y === -1 && i === 2) {
-				return black;
-			}
-			if (z === -1 && i === 4) {
-				return black;
-			}
-			if (x === 1 && i === 1) {
-				return black;
-			}
-			if (y === 1 && i === 3) {
-				return black;
-			}
-			if (z === 1 && i === 5) {
-				return black;
-			}
-			return c;
-		});
-	}
-
-	let count = 0;
-	let rotX = tweened(0, { duration: 800, easing: cubicOut });
-	const tick = () => {
-		if (count % 100 === 0) $rotX += Math.PI / 2;
-		count++;
-		handle = window.requestAnimationFrame(tick);
-	};
-	let handle;
-	tick();
-	$rotX = Math.PI / 2;
 </script>
 
 <div id="twisty-content">
 	<div class="threlte-cube-container">
-		<Canvas flat={true}>
-			<PerspectiveCamera position={{ x: 10, y: 10, z: 10 }} fov={24}>
-				<OrbitControls autoRotate={false} enableZoom={false} target={{ y: 0.5 }} />
-			</PerspectiveCamera>
-
-			<DirectionalLight color={'white'} position={{ x: -15, y: 45, z: 20 }} intensity={0.8} />
-			<DirectionalLight color={'white'} position={{ x: 15, y: 45, z: -20 }} intensity={0.8} />
-			<HemisphereLight skyColor={colors.white} groundColor={colors.grey} intensity={0.4} />
-			<AmbientLight color={'white'} intensity={0.4} />
-
-			<!-- Cube -->
-			{#each cubies as x}
-				{#each cubies as y}
-					{#each cubies as z}
-						<Mesh
-							rotation={{ y: y === 1 ? $rotX : 0 }}
-							geometry={createBoxGeometry({ x, y, z })}
-							material={getMaterial({ x, y, z })}
-						/>
-					{/each}
-				{/each}
-			{/each}
-		</Canvas>
+		<IconButton on:click={plusPlay} class="material-icons">add</IconButton>
+		<IconButton on:click={minusPlay} class="material-icons">remove</IconButton>
+		<TCube {alg} bind:playHead={newPlayHead} />
 	</div>
 </div>
 
@@ -251,7 +141,7 @@
 
 	.threlte-cube-container {
 		width: 800px;
-		height: 800px;
+		height: 400px;
 		border: 4px solid green;
 	}
 
