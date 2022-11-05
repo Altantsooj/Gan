@@ -157,17 +157,17 @@
 	const colors = {
 		white: new Color(0xffffff).convertSRGBToLinear(),
 		orange: new Color(0xf08733).convertSRGBToLinear(),
-		green: '#00ff00',
-		red: '#FF0000',
-		blue: '#0000FF',
-		yellow: '#ffff00',
+		green: new Color(0x00ff00).convertSRGBToLinear(),
+		red: new Color(0xff0000).convertSRGBToLinear(),
+		blue: new Color(0x0000ff).convertSRGBToLinear(),
+		yellow: new Color(0xffff00).convertLinearToSRGB(),
 		grey: '#444444',
 		black: '#050505'
 	};
 	function getMaterial({ x, y, z }: CubieCoord) {
 		const U = new MeshPhongMaterial({ color: colors.white });
 		const D = new MeshPhongMaterial({ color: colors.yellow });
-		const L = new MeshPhongMaterial({ color: colors.orange, specular: colors.orange });
+		const L = new MeshPhongMaterial({ color: colors.orange });
 		const R = new MeshPhongMaterial({ color: colors.red });
 		const F = new MeshPhongMaterial({ color: colors.green });
 		const B = new MeshPhongMaterial({ color: colors.blue });
@@ -205,7 +205,7 @@
 	}
 
 	let count = 0;
-	let rotX = tweened(0, { duration: 500, easing: cubicOut });
+	let rotX = tweened(0, { duration: 800, easing: cubicOut });
 	const tick = () => {
 		if (count % 100 === 0) $rotX += Math.PI / 2;
 		count++;
@@ -218,15 +218,15 @@
 
 <div id="twisty-content">
 	<div class="threlte-cube-container">
-		<Canvas>
+		<Canvas flat={true}>
 			<PerspectiveCamera position={{ x: 10, y: 10, z: 10 }} fov={24}>
 				<OrbitControls autoRotate={false} enableZoom={false} target={{ y: 0.5 }} />
 			</PerspectiveCamera>
 
-			<DirectionalLight color={'white'} position={{ x: -15, y: 45, z: 20 }} intensity={0.5} />
-			<DirectionalLight color={'white'} position={{ x: 15, y: 45, z: -20 }} intensity={0.5} />
-			<HemisphereLight skyColor={colors.white} groundColor={colors.grey} intensity={0.0} />
-			<AmbientLight intensity={1.0} />
+			<DirectionalLight color={'white'} position={{ x: -15, y: 45, z: 20 }} intensity={0.8} />
+			<DirectionalLight color={'white'} position={{ x: 15, y: 45, z: -20 }} intensity={0.8} />
+			<HemisphereLight skyColor={colors.white} groundColor={colors.grey} intensity={0.4} />
+			<AmbientLight color={'white'} intensity={0.4} />
 
 			<!-- Cube -->
 			{#each cubies as x}
