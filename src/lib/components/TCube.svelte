@@ -1,5 +1,14 @@
 <script lang="ts">
-	import { BoxGeometry, MeshPhongMaterial, Color, Quaternion, Vector3 } from 'three';
+	import {
+		BoxGeometry,
+		MeshPhongMaterial,
+		Color,
+		Quaternion,
+		Vector3,
+		SphereGeometry,
+		Mesh as TMesh,
+		Material
+	} from 'three';
 	import {
 		AmbientLight,
 		Canvas,
@@ -7,14 +16,14 @@
 		HemisphereLight,
 		Mesh,
 		OrbitControls,
-		PerspectiveCamera,
-		useFrame
+		PerspectiveCamera
 	} from '@threlte/core';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import type { Unsubscriber } from 'svelte/store';
 	import { CubieCube, Move, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 	import FrameLoop from './FrameLoop.svelte';
+	import { CSG } from '$lib/third_party/CSG';
 
 	export let alg = '';
 	export let playHead: number = 0;
@@ -27,9 +36,14 @@
 	const cubies = [-1, 0, 1];
 	const slice: BoxGeometry[] = [];
 	//const cubies = [ 0];
-	function createBoxGeometry({ x, y, z }: CubieCoord) {
-		const s = 0.985;
-		const ret = new BoxGeometry(s, s, s);
+	function createBoxGeometry({ x, y, z }: CubieCoord, dims?: CubieCoord) {
+		const i = address({ x, y, z });
+		if (!dims && cubiesInfo[i].mesh) {
+			return cubiesInfo[i].mesh?.geometry;
+		}
+		const s = 1.0; //0.95; //0.985;
+		const d = dims ? dims : { x: s, y: s, z: s };
+		const ret = new BoxGeometry(d.x, d.y, d.z);
 		ret.translate(x, y, z);
 		if (y === 0) slice.push(ret);
 		return ret;
@@ -45,6 +59,10 @@
 		black: '#050505'
 	};
 	function getMaterial({ x, y, z }: CubieCoord) {
+		const i = address({ x, y, z });
+		if (cubiesInfo[i].mesh) {
+			return cubiesInfo[i].mesh?.material;
+		}
 		const U = new MeshPhongMaterial({ color: colors.white });
 		const D = new MeshPhongMaterial({ color: colors.yellow });
 		const L = new MeshPhongMaterial({ color: colors.orange });
@@ -92,10 +110,12 @@
 	});
 	interface CubieInfo {
 		position: CubieCoord;
+		size: CubieCoord;
 		rotation: CubieCoord;
 		mesh?: THREE.Mesh;
 		source?: Quaternion;
 		destination?: Quaternion;
+		translation: Vector3;
 	}
 	let cubiesInfo: CubieInfo[] = cubies
 		.map((x) =>
@@ -103,7 +123,9 @@
 				cubies.map((z) => {
 					return {
 						position: { x, y, z },
-						rotation: { x: 0, y: 0, z: 0 }
+						size: { x: 1, y: 1, z: 1 },
+						rotation: { x: 0, y: 0, z: 0 },
+						translation: new Vector3(0, 0, 0)
 					};
 				})
 			)
@@ -249,7 +271,7 @@
 				});
 				*/
 			}
-			rotations = [...rotations];
+			//rotations = [...rotations];
 			let d = 1;
 			if (move.name.length > 1) {
 				let offset = 1;
@@ -285,6 +307,81 @@
 					const now = rotMove.multiply(cubiesInfo[i].source!);
 					cubiesInfo[i].mesh!.quaternion.set(now.x, now.y, now.z, now.w);
 				}
+
+				if (rot === 0) {
+					const q = fullMove;
+					let s = 1;
+					if (1 - q.w * q.w > 0.000001) {
+						s = Math.sqrt(1 - q.w * q.w);
+					}
+					const axis = vec; //new Vector3(q.x / s, q.y / s, q.z / s).normalize();
+					axis.applyQuaternion(cubiesInfo[i].source);
+					/*
+					//cubiesInfo[i].mesh?.scale.multiplyScalar(0.8);
+					cubiesInfo[i].mesh!.geometry.computeBoundingBox();
+					const m = cubiesInfo[i].mesh!.geometry.boundingBox!.min;
+					const mx = cubiesInfo[i].mesh!.geometry.boundingBox!.max;
+					let offsetDir = 1;
+					console.log({ axis, m });
+					
+					//const xlate = cubiesInfo[i].translation.clone().applyQuaternion(cubiesInfo[i].destination!);
+					cubiesInfo[i].translation.copy(new Vector3(0, 0, 0));
+					/*
+					if (Math.abs(axis.x) > 0.5) {
+						if (axis.x * m.x > 0) offsetDir *= -1;
+						cubiesInfo[i].translation.x = 0.2*offsetDir;
+					} else if (Math.abs(axis.y) > 0.5) {
+						if (axis.y * m.y > 0) offsetDir *= -1;
+						cubiesInfo[i].translation.y = 0.2*offsetDir;
+					} else {
+						if (axis.z * m.z > 0) offsetDir *= -1;
+						cubiesInfo[i].translation.z = 0.2*offsetDir;
+					}
+					//cubiesInfo[i].translation.applyQuaternion(cubiesInfo[i].source!);
+					cubiesInfo[i].translation.add(xlate);
+					//cubiesInfo[i].mesh?.translateOnAxis(axis, -0.2 * offsetDir);
+						if (m.x > 0 && mx.x > 0) offsetDir *= -1;
+						else if (m.x > 0 && mx.x < 0) offsetDir = 0;
+						cubiesInfo[i].translation.x = 0.2*offsetDir;
+						offsetDir = 1;
+						//if (m.z > 0) offsetDir *= -1;
+						if (m.z > 0 && mx.z > 0) offsetDir *= -1;
+						else if (m.z > 0 && mx.z < 0) offsetDir = 0;
+						offsetDir = 1;
+						if (m.y > 0 && mx.y > 0) offsetDir *= -1;
+						else if (m.y > 0 && mx.y < 0) offsetDir = 0;
+						*/
+					//cubiesInfo[i].translation.z = -0.2*a.z;
+					//cubiesInfo[i].translation.y = -0.2*a.y;
+					//cubiesInfo[i].translation.x = -0.2*a.x;
+					const qInv = cubiesInfo[i].destination!.clone().normalize().invert();
+					cubiesInfo[i].mesh?.position.copy(cubiesInfo[i].translation).applyQuaternion(qInv);
+					//cubiesInfo[i].mesh?.scale.copy(new Vector3(1.0, 1.0, 1.0))
+					/*
+					console.log("PAINT IT BLACK")
+					const mats: Material[] = cubiesInfo[i].mesh!.material as Material[];
+					const black = new MeshPhongMaterial({ color: colors.black });
+					for (let i = 0; i < mats.length; ++i) {
+						mats[i] = black;
+						mats[i].needsUpdate;
+					}
+					*/
+					let size = cubiesInfo[i].size;
+					if (Math.abs(axis.x) > 0.5) {
+						size.x = 0.85;
+						console.log('S X');
+					} else if (Math.abs(axis.y) > 0.5) {
+						size.y = 0.85;
+						console.log('S Y', cubiesInfo[i].mesh?.up);
+					} else {
+						size.z = 0.85;
+						console.log('S Z');
+					}
+					cubiesInfo[i].mesh!.geometry = createBoxGeometry(
+						cubiesInfo[i].position,
+						cubiesInfo[i].size
+					);
+				}
 			});
 		};
 	}
@@ -294,6 +391,18 @@
 	}
 	$: if (playHead > moves.length()) {
 		playHead = moves.length();
+	}
+	function onPointerEnter(c: CubieInfo) {
+		return () => {
+			//console.log({ mp: c.mesh })
+			//c.mesh!.material = getMaterial({x: 0, y: 0, z: 0})
+			//c.mesh!.geometry = createBoxGeometry(c.position, { x: 0.5, y: 0.5, z: 0.5 })
+		};
+	}
+	function onPointerLeave(c: CubieInfo) {
+		return () => {
+			//c.mesh!.material = getMaterial(c.position)
+		};
 	}
 </script>
 
@@ -317,6 +426,9 @@
 	<!-- Cube -->
 	{#each cubiesInfo as cubie}
 		<Mesh
+			interactive
+			on:pointerenter={onPointerEnter(cubie)}
+			on:pointerleave={onPointerLeave(cubie)}
 			bind:mesh={cubie.mesh}
 			geometry={createBoxGeometry(cubie.position)}
 			material={getMaterial(cubie.position)}
