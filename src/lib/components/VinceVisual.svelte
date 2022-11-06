@@ -127,9 +127,9 @@
 </script>
 
 <div id="twisty-content">
+	<IconButton on:click={plusPlay} class="material-icons">add</IconButton>
+	<IconButton on:click={minusPlay} class="material-icons">remove</IconButton>
 	<div class="threlte-cube-container">
-		<IconButton on:click={plusPlay} class="material-icons">add</IconButton>
-		<IconButton on:click={minusPlay} class="material-icons">remove</IconButton>
 		<TCube {alg} bind:playHead={newPlayHead} />
 	</div>
 </div>
@@ -142,7 +142,9 @@
 	.threlte-cube-container {
 		width: 800px;
 		height: 400px;
-		border: 4px solid green;
+		border: 2px solid green;
+		border-radius: 8px;
+		padding: 14px;
 	}
 
 	:global(.twisty-alg-move) {

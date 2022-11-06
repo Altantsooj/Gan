@@ -28,7 +28,7 @@
 	const slice: BoxGeometry[] = [];
 	//const cubies = [ 0];
 	function createBoxGeometry({ x, y, z }: CubieCoord) {
-		const s = 0.995;
+		const s = 0.985;
 		const ret = new BoxGeometry(s, s, s);
 		ret.translate(x, y, z);
 		if (y === 0) slice.push(ret);
@@ -86,7 +86,7 @@
 
 	let count = 0;
 	type AnimationStore = ReturnType<typeof tweened<number>> & { face: string; unsub?: Unsubscriber };
-	let tOff: AnimationStore = { ...tweened(0, { duration: 800, easing: cubicOut }), face: 'L' };
+	let tOff: AnimationStore = { ...tweened(0, { duration: 300, easing: cubicOut }), face: 'L' };
 	let rotations: CubieCoord[] = Array.from({ length: 3 * 3 * 3 }, () => {
 		return { x: 0, y: 0, z: 0 };
 	});
@@ -94,6 +94,7 @@
 		position: CubieCoord;
 		rotation: CubieCoord;
 		mesh?: THREE.Mesh;
+		source?: Quaternion;
 		destination?: Quaternion;
 	}
 	let cubiesInfo: CubieInfo[] = cubies
@@ -196,10 +197,10 @@
 		}
 	}
 	let cubeState: CubieCube = new CubieCube();
+	$: moves = new MoveSeq(alg);
 	function spinListener(anim: AnimationStore) {
 		const direction = playHead - lastPlayHead;
 		let move = Move.all['id'];
-		const moves = new MoveSeq(alg);
 		if (direction > 0 && playHead > 0) {
 			move = moves.moves[lastPlayHead];
 		} else if (direction < 0 && playHead < moves.length()) {
@@ -263,26 +264,36 @@
 			addresses.forEach((a, j) => {
 				const i = address(a);
 				const ci = centerIndex;
-				if (rot === 0) {
-					const rotMove = new Quaternion();
-					if (axis[ci] === 'x') {
-						rotMove.setFromAxisAngle(new Vector3(1, 0, 0), (-d * Math.PI) / 2);
-					} else if (axis[ci] === 'y') {
-						rotMove.setFromAxisAngle(new Vector3(0, 1, 0), (-d * Math.PI) / 2);
-					} else {
-						rotMove.setFromAxisAngle(new Vector3(0, 0, 1), (-d * Math.PI) / 2);
+				const rotMove = new Quaternion();
+				const fullMove = new Quaternion();
+				let vec = new Vector3(0, 0, 1);
+				if (axis[ci] === 'x') {
+					vec = new Vector3(1, 0, 0);
+				} else if (axis[ci] === 'y') {
+					vec = new Vector3(0, 1, 0);
+				}
+				rotMove.setFromAxisAngle(vec, (rot * (-d * Math.PI)) / 2);
+				fullMove.setFromAxisAngle(vec, (-d * Math.PI) / 2);
+				if (cubiesInfo[i].mesh) {
+					if (rot === 0) {
+						if (!cubiesInfo[i].destination) {
+							cubiesInfo[i].destination = cubiesInfo[i].mesh!.quaternion.clone();
+						}
+						cubiesInfo[i].source = cubiesInfo[i].destination!.clone();
+						cubiesInfo[i].destination = fullMove.multiply(cubiesInfo[i].destination!);
 					}
-					if (cubiesInfo[i].destination === undefined) {
-						cubiesInfo[i].destination = cubiesInfo[i].mesh!.quaternion;
-					}
-					if (cubiesInfo[i].mesh) {
-						cubiesInfo[i].destination = rotMove.multiply(cubiesInfo[i].destination!);
-					}
-				} else {
-					cubiesInfo[i].mesh?.quaternion.slerp(cubiesInfo[i].destination!, rot);
+					const now = rotMove.multiply(cubiesInfo[i].source!);
+					cubiesInfo[i].mesh!.quaternion.set(now.x, now.y, now.z, now.w);
 				}
 			});
 		};
+	}
+
+	$: if (playHead < 0) {
+		playHead = 0;
+	}
+	$: if (playHead > moves.length()) {
+		playHead = moves.length();
 	}
 </script>
 
@@ -318,6 +329,10 @@
 		font-family: Roboto, sans-serif;
 		font-size: 32px;
 		padding: 8px;
+	}
+	div {
+		margin-bottom: -32px;
+		padding: 0px;
 	}
 	.selected {
 		font-weight: bold;
