@@ -94,6 +94,7 @@
 		position: CubieCoord;
 		rotation: CubieCoord;
 		mesh?: THREE.Mesh;
+		destination?: Quaternion;
 	}
 	let cubiesInfo: CubieInfo[] = cubies
 		.map((x) =>
@@ -179,7 +180,7 @@
 	let handle;
 	tick();
 	function twist() {
-		tOff = { ...tweened(0, { duration: 200, easing: cubicOut }), face: 'L' };
+		tOff = { ...tweened(0, { duration: 1000, easing: cubicOut }), face: 'L' };
 		const unsub = tOff.subscribe(spinListener(tOff));
 		tOff.unsub = unsub;
 		$tOff = 1;
@@ -240,44 +241,45 @@
 					console.log('Animation ended for face ', anim.face);
 					anim.unsub();
 				}
+				/*
+				addresses.forEach((a, j) => {
+					const i = address(a);
+					cubiesInfo[i].destination = undefined;
+				});
+				*/
 			}
 			rotations = [...rotations];
+			let d = 1;
+			if (move.name.length > 1) {
+				let offset = 1;
+				if (move.name[1] > '0' && move.name[1] < '9') {
+					d = parseInt(move.name[1]);
+					offset++;
+				}
+				if (move.name.length > offset) {
+					d *= -1;
+				}
+			}
 			addresses.forEach((a, j) => {
 				const i = address(a);
-				let d = 1;
-				if (move.name.length > 1) {
-					let offset = 1;
-					if (move.name[1] > '0' && move.name[1] < '9') {
-						d = parseInt(move.name[1]);
-						offset++;
-					}
-					if (move.name.length > offset) {
-						d *= -1;
-					}
-				}
-				//const ci = centerIndexes[j];
-				console.log({ centerIndexes, j, centerIndex });
 				const ci = centerIndex;
-				console.log({ mesh: cubiesInfo[i].mesh });
 				if (rot === 0) {
-					const zMove = new Quaternion();
-					const yMove = new Quaternion();
-					const xMove = new Quaternion();
-					xMove.setFromAxisAngle(new Vector3(1, 0, 0), (d * dirM[centerIndex] * Math.PI) / 2);
-					yMove.setFromAxisAngle(new Vector3(0, 1, 0), (-d * dirM[centerIndex] * Math.PI) / 2);
-					zMove.setFromAxisAngle(new Vector3(0, 0, 1), (-d * dirM[centerIndex] * Math.PI) / 2);
+					const rotMove = new Quaternion();
 					if (axis[ci] === 'x') {
-						cubiesInfo[i].mesh?.applyQuaternion(xMove);
-						//rotations[i].x = oldRotations[i].x + (d * dirM[centerIndex] * (rot * Math.PI)) / 2;
+						rotMove.setFromAxisAngle(new Vector3(1, 0, 0), (-d * Math.PI) / 2);
 					} else if (axis[ci] === 'y') {
-						cubiesInfo[i].mesh?.applyQuaternion(yMove);
-						//cubiesInfo[i].mesh?.rotateY((d * dirM[centerIndex] * (rot * Math.PI)) / 2);
-						//rotations[i].y = oldRotations[i].y + (d * dirM[centerIndex] * (rot * Math.PI)) / 2;
+						rotMove.setFromAxisAngle(new Vector3(0, 1, 0), (-d * Math.PI) / 2);
 					} else {
-						cubiesInfo[i].mesh?.applyQuaternion(zMove);
-						//cubiesInfo[i].mesh?.rotateZ((d * dirM[centerIndex] * (rot * Math.PI)) / 2);
-						//rotations[i].z = oldRotations[i].z + (d * dirM[centerIndex] * (rot * Math.PI)) / 2;
+						rotMove.setFromAxisAngle(new Vector3(0, 0, 1), (-d * Math.PI) / 2);
 					}
+					if (cubiesInfo[i].destination === undefined) {
+						cubiesInfo[i].destination = cubiesInfo[i].mesh!.quaternion;
+					}
+					if (cubiesInfo[i].mesh) {
+						cubiesInfo[i].destination = rotMove.multiply(cubiesInfo[i].destination!);
+					}
+				} else {
+					cubiesInfo[i].mesh?.quaternion.slerp(cubiesInfo[i].destination!, rot);
 				}
 			});
 		};
