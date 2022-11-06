@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BoxGeometry, MeshPhongMaterial, Color } from 'three';
+	import { BoxGeometry, MeshPhongMaterial, Color, Quaternion, Vector3 } from 'three';
 	import {
 		AmbientLight,
 		Canvas,
@@ -7,12 +7,14 @@
 		HemisphereLight,
 		Mesh,
 		OrbitControls,
-		PerspectiveCamera
+		PerspectiveCamera,
+		useFrame
 	} from '@threlte/core';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import type { Unsubscriber } from 'svelte/store';
 	import { CubieCube, Move, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
+	import FrameLoop from './FrameLoop.svelte';
 
 	export let alg = '';
 	export let playHead: number = 0;
@@ -87,6 +89,27 @@
 	let tOff: AnimationStore = { ...tweened(0, { duration: 800, easing: cubicOut }), face: 'L' };
 	let rotations: CubieCoord[] = Array.from({ length: 3 * 3 * 3 }, () => {
 		return { x: 0, y: 0, z: 0 };
+	});
+	interface CubieInfo {
+		position: CubieCoord;
+		rotation: CubieCoord;
+		mesh?: THREE.Mesh;
+	}
+	let cubiesInfo: CubieInfo[] = cubies
+		.map((x) =>
+			cubies.map((y) =>
+				cubies.map((z) => {
+					return {
+						position: { x, y, z },
+						rotation: { x: 0, y: 0, z: 0 }
+					};
+				})
+			)
+		)
+		.flat()
+		.flat();
+	let meshes: (THREE.Mesh | undefined)[] = Array.from({ length: 3 * 3 * 3 }, () => {
+		return undefined;
 	});
 	function address({ x, y, z }: CubieCoord) {
 		return (x + 1) * 3 * 3 + (y + 1) * 3 + (z + 1);
@@ -235,12 +258,26 @@
 				//const ci = centerIndexes[j];
 				console.log({ centerIndexes, j, centerIndex });
 				const ci = centerIndex;
-				if (axis[ci] === 'x') {
-					rotations[i].x = oldRotations[i].x + (d * dirM[centerIndex] * (rot * Math.PI)) / 2;
-				} else if (axis[ci] === 'y') {
-					rotations[i].y = oldRotations[i].y + (d * dirM[centerIndex] * (rot * Math.PI)) / 2;
-				} else {
-					rotations[i].z = oldRotations[i].z + (d * dirM[centerIndex] * (rot * Math.PI)) / 2;
+				console.log({ mesh: cubiesInfo[i].mesh });
+				if (rot === 0) {
+					const zMove = new Quaternion();
+					const yMove = new Quaternion();
+					const xMove = new Quaternion();
+					xMove.setFromAxisAngle(new Vector3(1, 0, 0), (d * dirM[centerIndex] * Math.PI) / 2);
+					yMove.setFromAxisAngle(new Vector3(0, 1, 0), (-d * dirM[centerIndex] * Math.PI) / 2);
+					zMove.setFromAxisAngle(new Vector3(0, 0, 1), (-d * dirM[centerIndex] * Math.PI) / 2);
+					if (axis[ci] === 'x') {
+						cubiesInfo[i].mesh?.applyQuaternion(xMove);
+						//rotations[i].x = oldRotations[i].x + (d * dirM[centerIndex] * (rot * Math.PI)) / 2;
+					} else if (axis[ci] === 'y') {
+						cubiesInfo[i].mesh?.applyQuaternion(yMove);
+						//cubiesInfo[i].mesh?.rotateY((d * dirM[centerIndex] * (rot * Math.PI)) / 2);
+						//rotations[i].y = oldRotations[i].y + (d * dirM[centerIndex] * (rot * Math.PI)) / 2;
+					} else {
+						cubiesInfo[i].mesh?.applyQuaternion(zMove);
+						//cubiesInfo[i].mesh?.rotateZ((d * dirM[centerIndex] * (rot * Math.PI)) / 2);
+						//rotations[i].z = oldRotations[i].z + (d * dirM[centerIndex] * (rot * Math.PI)) / 2;
+					}
 				}
 			});
 		};
@@ -262,17 +299,15 @@
 	<HemisphereLight skyColor={colors.white} groundColor={colors.grey} intensity={0.4} />
 	<AmbientLight color={'white'} intensity={0.4} />
 
+	<FrameLoop />
+
 	<!-- Cube -->
-	{#each cubies as x}
-		{#each cubies as y}
-			{#each cubies as z}
-				<Mesh
-					rotation={rotations[address({ x, y, z })]}
-					geometry={createBoxGeometry({ x, y, z })}
-					material={getMaterial({ x, y, z })}
-				/>
-			{/each}
-		{/each}
+	{#each cubiesInfo as cubie}
+		<Mesh
+			bind:mesh={cubie.mesh}
+			geometry={createBoxGeometry(cubie.position)}
+			material={getMaterial(cubie.position)}
+		/>
 	{/each}
 </Canvas>
 
