@@ -1,14 +1,5 @@
 <script lang="ts">
-	import {
-		BoxGeometry,
-		MeshPhongMaterial,
-		Color,
-		Quaternion,
-		Vector3,
-		SphereGeometry,
-		Mesh as TMesh,
-		Material
-	} from 'three';
+	import { BoxGeometry, MeshPhongMaterial, Color, Quaternion, Vector3, Material } from 'three';
 	import {
 		AmbientLight,
 		Canvas,
@@ -23,7 +14,6 @@
 	import type { Unsubscriber } from 'svelte/store';
 	import { CubieCube, Move, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 	import FrameLoop from './FrameLoop.svelte';
-	import { CSG } from '$lib/third_party/CSG';
 
 	export let alg = '';
 	export let playHead: number = 0;
@@ -34,18 +24,15 @@
 		z: number;
 	}
 	const cubies = [-1, 0, 1];
-	const slice: BoxGeometry[] = [];
-	//const cubies = [ 0];
-	function createBoxGeometry({ x, y, z }: CubieCoord, dims?: CubieCoord) {
+	function createBoxGeometry({ x, y, z }: CubieCoord, dims?: CubieCoord): BoxGeometry {
 		const i = address({ x, y, z });
 		if (!dims && cubiesInfo[i].mesh) {
-			return cubiesInfo[i].mesh?.geometry;
+			return cubiesInfo[i].mesh?.geometry as BoxGeometry;
 		}
 		const s = 1.0; //0.95; //0.985;
 		const d = dims ? dims : { x: s, y: s, z: s };
 		const ret = new BoxGeometry(d.x, d.y, d.z);
 		ret.translate(x, y, z);
-		if (y === 0) slice.push(ret);
 		return ret;
 	}
 	const colors = {
@@ -58,10 +45,10 @@
 		grey: '#444444',
 		black: '#050505'
 	};
-	function getMaterial({ x, y, z }: CubieCoord) {
+	function getMaterial({ x, y, z }: CubieCoord): Material[] {
 		const i = address({ x, y, z });
 		if (cubiesInfo[i].mesh) {
-			return cubiesInfo[i].mesh?.material;
+			return cubiesInfo[i].mesh?.material as Material[];
 		}
 		const U = new MeshPhongMaterial({ color: colors.white });
 		const D = new MeshPhongMaterial({ color: colors.yellow });
@@ -105,9 +92,7 @@
 	let count = 0;
 	type AnimationStore = ReturnType<typeof tweened<number>> & { face: string; unsub?: Unsubscriber };
 	let tOff: AnimationStore = { ...tweened(0, { duration: 300, easing: cubicOut }), face: 'L' };
-	let rotations: CubieCoord[] = Array.from({ length: 3 * 3 * 3 }, () => {
-		return { x: 0, y: 0, z: 0 };
-	});
+
 	interface CubieInfo {
 		position: CubieCoord;
 		size: CubieCoord;
@@ -228,12 +213,8 @@
 		} else if (direction < 0 && playHead < moves.length()) {
 			move = moves.moves[lastPlayHead - 1].inv();
 		}
-		const oldRotations = [...rotations].map((obj) => {
-			return { ...obj };
-		});
 		const centerIndex = ['U', 'D', 'F', 'B', 'L', 'R'].indexOf(move.name[0]);
 		const axis = ['y', 'y', 'z', 'z', 'x', 'x'];
-		const dirM = [1, -1, 1, -1, 1, -1];
 		const centers = cubeState.tp.slice(0);
 		const corners = cubeState.cp.slice(0);
 		const cornerOri = cubeState.co.slice(0);
@@ -264,14 +245,7 @@
 					console.log('Animation ended for face ', anim.face);
 					anim.unsub();
 				}
-				/*
-				addresses.forEach((a, j) => {
-					const i = address(a);
-					cubiesInfo[i].destination = undefined;
-				});
-				*/
 			}
-			//rotations = [...rotations];
 			let d = 1;
 			if (move.name.length > 1) {
 				let offset = 1;
@@ -315,57 +289,7 @@
 						s = Math.sqrt(1 - q.w * q.w);
 					}
 					const axis = vec; //new Vector3(q.x / s, q.y / s, q.z / s).normalize();
-					axis.applyQuaternion(cubiesInfo[i].source);
-					/*
-					//cubiesInfo[i].mesh?.scale.multiplyScalar(0.8);
-					cubiesInfo[i].mesh!.geometry.computeBoundingBox();
-					const m = cubiesInfo[i].mesh!.geometry.boundingBox!.min;
-					const mx = cubiesInfo[i].mesh!.geometry.boundingBox!.max;
-					let offsetDir = 1;
-					console.log({ axis, m });
-					
-					//const xlate = cubiesInfo[i].translation.clone().applyQuaternion(cubiesInfo[i].destination!);
-					cubiesInfo[i].translation.copy(new Vector3(0, 0, 0));
-					/*
-					if (Math.abs(axis.x) > 0.5) {
-						if (axis.x * m.x > 0) offsetDir *= -1;
-						cubiesInfo[i].translation.x = 0.2*offsetDir;
-					} else if (Math.abs(axis.y) > 0.5) {
-						if (axis.y * m.y > 0) offsetDir *= -1;
-						cubiesInfo[i].translation.y = 0.2*offsetDir;
-					} else {
-						if (axis.z * m.z > 0) offsetDir *= -1;
-						cubiesInfo[i].translation.z = 0.2*offsetDir;
-					}
-					//cubiesInfo[i].translation.applyQuaternion(cubiesInfo[i].source!);
-					cubiesInfo[i].translation.add(xlate);
-					//cubiesInfo[i].mesh?.translateOnAxis(axis, -0.2 * offsetDir);
-						if (m.x > 0 && mx.x > 0) offsetDir *= -1;
-						else if (m.x > 0 && mx.x < 0) offsetDir = 0;
-						cubiesInfo[i].translation.x = 0.2*offsetDir;
-						offsetDir = 1;
-						//if (m.z > 0) offsetDir *= -1;
-						if (m.z > 0 && mx.z > 0) offsetDir *= -1;
-						else if (m.z > 0 && mx.z < 0) offsetDir = 0;
-						offsetDir = 1;
-						if (m.y > 0 && mx.y > 0) offsetDir *= -1;
-						else if (m.y > 0 && mx.y < 0) offsetDir = 0;
-						*/
-					//cubiesInfo[i].translation.z = -0.2*a.z;
-					//cubiesInfo[i].translation.y = -0.2*a.y;
-					//cubiesInfo[i].translation.x = -0.2*a.x;
-					const qInv = cubiesInfo[i].destination!.clone().normalize().invert();
-					cubiesInfo[i].mesh?.position.copy(cubiesInfo[i].translation).applyQuaternion(qInv);
-					//cubiesInfo[i].mesh?.scale.copy(new Vector3(1.0, 1.0, 1.0))
-					/*
-					console.log("PAINT IT BLACK")
-					const mats: Material[] = cubiesInfo[i].mesh!.material as Material[];
-					const black = new MeshPhongMaterial({ color: colors.black });
-					for (let i = 0; i < mats.length; ++i) {
-						mats[i] = black;
-						mats[i].needsUpdate;
-					}
-					*/
+					if (cubiesInfo[i].source) axis.applyQuaternion(cubiesInfo[i].source!);
 					let size = cubiesInfo[i].size;
 					if (Math.abs(axis.x) > 0.5) {
 						size.x = 0.85;
