@@ -1,5 +1,16 @@
 <script lang="ts">
-	import { BoxGeometry, MeshPhongMaterial, Color, Quaternion, Vector3, Material } from 'three';
+	import {
+		BoxGeometry,
+		MeshPhongMaterial,
+		Color,
+		Quaternion,
+		Vector3,
+		Material,
+		Mesh as TMesh,
+		SphereGeometry,
+		Matrix4,
+		MeshBasicMaterial
+	} from 'three';
 	import {
 		AmbientLight,
 		Canvas,
@@ -14,6 +25,7 @@
 	import type { Unsubscriber } from 'svelte/store';
 	import { CubieCube, Move, MoveSeq } from '$lib/third_party/onionhoney/CubeLib';
 	import FrameLoop from './FrameLoop.svelte';
+	import { CSG } from '$lib/third_party/CSG';
 
 	export let alg = '';
 	export let playHead: number = 0;
@@ -45,9 +57,9 @@
 		grey: '#444444',
 		black: '#050505'
 	};
-	function getMaterial({ x, y, z }: CubieCoord): Material[] {
+	function getMaterial({ x, y, z }: CubieCoord, force?: boolean): Material[] {
 		const i = address({ x, y, z });
-		if (cubiesInfo[i].mesh) {
+		if (cubiesInfo[i].mesh && !force) {
 			return cubiesInfo[i].mesh?.material as Material[];
 		}
 		const U = new MeshPhongMaterial({ color: colors.white });
@@ -301,10 +313,47 @@
 						size.z = 0.85;
 						console.log('S Z');
 					}
+					/*
 					cubiesInfo[i].mesh!.geometry = createBoxGeometry(
 						cubiesInfo[i].position,
 						cubiesInfo[i].size
 					);
+					*/
+					const slicex = vec.x + 1 === 1 ? 3.0 : 0.5;
+					const slicey = vec.y + 1 === 1 ? 3.0 : 0.5;
+					const slicez = vec.z + 1 === 1 ? 3.0 : 0.5;
+					console.log({ slicex, slicey, slicez });
+					const sg = new BoxGeometry(slicex, slicey, slicez);
+					sg.translate(vec.x / 2, vec.y / 2, vec.z / 2);
+					const sliceMesh = new TMesh(sg, new MeshPhongMaterial({ color: 0x0000ff }));
+
+					const cubeCSG = CSG.fromMesh(cubiesInfo[i].mesh!);
+					const sliceCSG = CSG.fromMesh(sliceMesh);
+
+					const slicedCSG = cubeCSG.subtract(sliceCSG);
+					const sliced = CSG.toMesh(slicedCSG, new Matrix4()).geometry;
+					sliced.computeBoundingBox();
+
+					/*
+					const bbl = sliced.boundingBox!.min;
+					const bbh = sliced.boundingBox!.max;
+					const dims = {x: bbh.x - bbl.x, y: bbh.y - bbl.y, z: bbh.z - bbl.z }
+					cubiesInfo[i].size = dims;
+					cubiesInfo[i].mesh!.geometry = createBoxGeometry(cubiesInfo[i].position, cubiesInfo[i].size)
+					*/
+
+					//cubiesInfo[i].mesh!.geometry = sliced;
+					const unsliced = cubiesInfo[i].mesh!.geometry;
+					console.log({ unsliced, sliced });
+					//sliced.groups = unsliced.groups;
+					cubiesInfo[i].mesh!.geometry = sliced;
+					//cubiesInfo[i].mesh!.geometry = new SphereGeometry();
+					//cubiesInfo[i].mesh!.material = new MeshPhongMaterial({ color: colors.red });
+					cubiesInfo[i].mesh!.material = new MeshBasicMaterial({
+						color: 0xff0000,
+						wireframe: true
+					});
+					//cubiesInfo[i].mesh!.material = getMaterial(cubiesInfo[i].position, true);
 				}
 			});
 		};
