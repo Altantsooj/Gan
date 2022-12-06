@@ -6,12 +6,27 @@
 	import { setDoc, doc } from 'firebase/firestore';
 	import Avatar from '$lib/components/Avatar.svelte';
 
+	import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+	import { getAuth, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+
+	const signInWithGoogle = async () => {
+		// 1. Create credentials on the native layer
+		const result = await FirebaseAuthentication.signInWithGoogle({
+			skipNativeAuth: true
+		});
+		// 2. Sign in on the web layer using the id token
+		const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+		const auth = getAuth();
+		console.log({auth, credential})
+		await signInWithCredential(auth, credential);
+	};
+
 	const auth = firebase.auth;
-	const gAuthProvider = firebase.google_auth_provider;
-	import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+	import { onAuthStateChanged } from 'firebase/auth';
 	import { error, signed_in, signed_out } from './auth';
 	onAuthStateChanged(auth, (user) => {
 		if (user) {
+			console.log('user.email: ' + user.email)
 			store.dispatch(
 				signed_in({
 					uid: user.uid,
@@ -41,14 +56,21 @@
 	});
 
 	function signin() {
-		signInWithPopup(auth, gAuthProvider).catch((message) => {
-			store.dispatch(error(message));
-		});
+		signInWithGoogle()
+			.then(() => {
+				console.log('signed in, then');
+			})
+			.catch((message) => {
+				console.error('auth error: ', message);
+				store.dispatch(error(message));
+			});
 	}
 	function signout() {
+		/*
 		signOut(auth).catch((message) => {
 			store.dispatch(error(message));
 		});
+		*/
 	}
 </script>
 
